@@ -1,58 +1,96 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ArtDoc
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+ArtDoc is a local-first artwork inventory and lifecycle management application for artists. It helps you catalog physical artwork, track creation and completion workflow, manage metadata, and prepare for future photo documentation workflows.
 
-## About Laravel
+ArtDoc is built with [Laravel](https://laravel.com) and SQLite. It is designed for self-hosted, offline-capable use with a simple backup model (copy the SQLite database and uploaded files).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Purpose
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+ArtDoc supports:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Artwork inventory records with flexible identifiers (inventory code, SKU)
+- Optional titles and backfill-friendly unnamed-work workflows
+- Creation and completion dates with lifecycle status rules
+- Physical metadata (medium, dimensions, storage, value)
+- Pattern-based auto-generation for inventory codes and SKUs
+- Local SQLite storage for lightweight, artist-focused deployment
 
-## Learning Laravel
+## Local development setup
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Requirements
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- PHP 8.3+
+- Composer
+- Node.js and npm (for frontend assets)
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### Quick start
 
 ```bash
-composer require laravel/boost --dev
+git clone <repository-url> artdoc
+cd artdoc
 
-php artisan boost:install
+composer install
+cp .env.example .env
+php artisan key:generate
+
+touch database/database.sqlite
+php artisan migrate
+
+# Create at least one user (required for artwork records)
+php artisan tinker
+# >>> \App\Models\User::factory()->create();
+
+npm install
+npm run build
+
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Open [http://127.0.0.1:8000/artworks](http://127.0.0.1:8000/artworks).
 
-## Contributing
+### Tests
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+./vendor/bin/phpunit
+```
 
-## Code of Conduct
+### Storage
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+User-uploaded artwork files (when enabled) are stored under `storage/app/public/artworks/`. Run `php artisan storage:link` before serving public uploads.
 
-## Security Vulnerabilities
+## Development roadmap
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Phase | Status | Description |
+|-------|--------|-------------|
+| 1 | Complete | Project setup |
+| 2 | Complete | SQLite / local database configuration |
+| 3 | Complete | Artwork schema and migrations |
+| 4 | Complete | Models, relationships, auth foundation |
+| 5 | Complete | SKU and inventory code generation |
+| 6 | Complete | Artwork CRUD and metadata UX polish |
+| 7 | In progress | Artwork image upload pipeline |
+| 8 | Planned | Search, filter, and sorting |
+| 9 | Planned | Dashboard improvements |
+| 10 | Planned | Authentication and security expansion |
+| 11 | Planned | Production readiness, deployment, documentation |
 
-## License
+## Licensing
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+ArtDoc is **not** MIT-licensed as a whole. It uses a dual-license model:
+
+- **Community use** — personal, educational, and non-commercial use under the [ArtDoc Community License](LICENSE)
+- **Commercial use** — requires a separate written commercial agreement
+
+Read these documents before use, modification, or redistribution:
+
+- [LICENSE](LICENSE) — full ArtDoc Community License terms
+- [LICENSE_OVERVIEW.md](LICENSE_OVERVIEW.md) — plain-language summary and examples
+- [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md) — commercial licensing requirements
+
+### Third-party software
+
+ArtDoc depends on third-party packages (including the Laravel framework) that remain licensed under their own terms. See LICENSE Section 7. Laravel is MIT-licensed; that license applies to Laravel itself, not to ArtDoc application code.
+
+## Copyright
+
+Copyright © 2026 Douglas Cross. All rights reserved except as granted in LICENSE.
