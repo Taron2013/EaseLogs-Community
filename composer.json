@@ -1,10 +1,10 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "artdoc/artdoc",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
-    "license": "MIT",
+    "description": "ArtDoc: Open-source art inventory and documentation system. Community and commercial dual-licensed.",
+    "keywords": ["artdoc", "art", "inventory", "documentation"],
+    "license": "ArtDoc-Community OR ArtDoc-Commercial",
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.8",
