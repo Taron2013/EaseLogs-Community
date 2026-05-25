@@ -10,8 +10,37 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Artwork extends Model
 {
+    public const STATUSES = [
+        'in_progress',
+        'in_inventory',
+        'available',
+        'reserved',
+        'sold',
+        'gifted',
+        'on_display',
+        'in_storage',
+        'archived',
+    ];
+
+    public const CONDITIONS = [
+        'excellent',
+        'good',
+        'fair',
+        'needs_repair',
+        'damaged',
+    ];
+
     /** @use HasFactory<\Database\Factories\ArtworkFactory> */
     use HasFactory;
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'status' => 'in_progress',
+        'title' => '',
+        'professional_art_reproduction_photo' => false,
+    ];
 
     /**
      * @var list<string>
@@ -43,6 +72,7 @@ class Artwork extends Model
         'sale_price',
         'currency',
         'notes',
+        'professional_art_reproduction_photo',
     ];
 
     /**
@@ -60,6 +90,7 @@ class Artwork extends Model
             'depth' => 'decimal:2',
             'estimated_value' => 'decimal:2',
             'sale_price' => 'decimal:2',
+            'professional_art_reproduction_photo' => 'boolean',
         ];
     }
 
