@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Artworks — ' . config('app.name'))
+@section('title', 'Artworks — ' . config('easelogs.display_name'))
 
 @section('content')
     <p style="margin-top:0;">
@@ -13,6 +13,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>Photo</th>
                     <th>Title</th>
                     <th>Inventory code</th>
                     <th>SKU</th>
@@ -24,6 +25,15 @@
             <tbody>
                 @foreach ($artworks as $artwork)
                     <tr>
+                        <td>
+                            @if ($artwork->latestPhoto)
+                                <a href="{{ route('artworks.show', $artwork) }}">
+                                    <img src="{{ $artwork->latestPhoto->publicUrl() }}" alt="" class="artwork-thumb">
+                                </a>
+                            @else
+                                <span class="artwork-thumb-placeholder">No photo</span>
+                            @endif
+                        </td>
                         <td><a href="{{ route('artworks.show', $artwork) }}">{{ $artwork->title ?: 'Untitled' }}</a></td>
                         <td>{{ $artwork->inventory_code }}</td>
                         <td>{{ $artwork->sku ?? '—' }}</td>

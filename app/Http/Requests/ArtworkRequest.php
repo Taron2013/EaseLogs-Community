@@ -60,6 +60,12 @@ class ArtworkRequest extends FormRequest
             'sale_price' => ['nullable', 'numeric', 'min:0'],
             'currency' => ['nullable', 'string', 'max:10'],
             'notes' => ['nullable', 'string'],
+            'photo' => [
+                'nullable',
+                'image',
+                'mimes:'.implode(',', config('easelogs.photo_mimes', ['jpeg', 'jpg', 'png', 'webp'])),
+                'max:'.config('easelogs.photo_max_kb', 10240),
+            ],
         ];
     }
 

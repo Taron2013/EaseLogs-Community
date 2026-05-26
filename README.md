@@ -56,7 +56,15 @@ Open [http://127.0.0.1:8000/artworks](http://127.0.0.1:8000/artworks).
 
 ### Storage
 
-User-uploaded artwork files (when enabled) are stored under `storage/app/public/artworks/`. Run `php artisan storage:link` before serving public uploads.
+Artwork photos are stored under `storage/app/public/artworks/`.
+
+**Required once per install** — create the public storage symlink so uploaded photos are visible in the browser:
+
+```bash
+php artisan storage:link
+```
+
+Without this step, photo uploads save correctly but thumbnails and detail images will not display.
 
 ## Development roadmap
 

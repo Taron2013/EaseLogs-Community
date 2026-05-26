@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ArtworkRequest;
 use App\Models\Artwork;
 use App\Models\User;
+use App\Services\ArtworkPhotoService;
 use App\Services\SKUGenerator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -13,11 +14,13 @@ class ArtworkController extends Controller
 {
     public function __construct(
         private readonly SKUGenerator $skuGenerator,
+        private readonly ArtworkPhotoService $photoService,
     ) {}
 
     public function index(): View
     {
         $artworks = Artwork::query()
+            ->with('latestPhoto')
             ->latest()
             ->paginate(20);
 
@@ -46,7 +49,11 @@ class ArtworkController extends Controller
         $user = User::query()->first();
         $data = $this->prepareArtworkData($request->validated(), $user);
 
-        Artwork::create($data);
+        $artwork = Artwork::create($data);
+
+        if ($request->hasFile('photo')) {
+            $this->photoService->store($artwork, $request->file('photo'));
+        }
 
         return redirect()
             ->route('artworks.index')
@@ -55,11 +62,15 @@ class ArtworkController extends Controller
 
     public function show(Artwork $artwork): View
     {
+        $artwork->load('latestPhoto');
+
         return view('artworks.show', compact('artwork'));
     }
 
     public function edit(Artwork $artwork): View
     {
+        $artwork->load('latestPhoto');
+
         return view('artworks.edit', [
             'artwork' => $artwork,
             'statuses' => Artwork::STATUSES,
@@ -78,6 +89,10 @@ class ArtworkController extends Controller
 
         $artwork->update($data);
 
+        if ($request->hasFile('photo')) {
+            $this->photoService->store($artwork, $request->file('photo'));
+        }
+
         return redirect()
             ->route('artworks.show', $artwork)
             ->with('success', 'Artwork updated successfully.');
@@ -85,6 +100,7 @@ class ArtworkController extends Controller
 
     public function destroy(Artwork $artwork): RedirectResponse
     {
+        $this->photoService->deletePhotosForArtwork($artwork);
         $artwork->delete();
 
         return redirect()
@@ -98,6 +114,8 @@ class ArtworkController extends Controller
      */
     private function prepareArtworkData(array $data, ?User $user, ?Artwork $artwork = null): array
     {
+        unset($data['photo']);
+
         // Map finished_painting to status
         if (!empty($data['finished_painting'])) {
             $data['status'] = 'in_inventory';

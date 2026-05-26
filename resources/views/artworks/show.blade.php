@@ -1,9 +1,15 @@
 @extends('layouts.app')
 
-@section('title', ($artwork->title ?: 'Untitled') . ' — ' . config('app.name'))
+@section('title', ($artwork->title ?: 'Untitled') . ' — ' . config('easelogs.display_name'))
 
 @section('content')
     <h2 style="margin-top:0;">{{ $artwork->title ?: 'Untitled' }}</h2>
+
+    @if ($artwork->latestPhoto)
+        <figure style="margin:0 0 1.25rem;">
+            <img src="{{ $artwork->latestPhoto->publicUrl() }}" alt="Photo of {{ $artwork->title ?: 'Untitled' }}" class="artwork-photo">
+        </figure>
+    @endif
 
     <p>
         <a href="{{ route('artworks.edit', $artwork) }}" class="btn">Edit</a>

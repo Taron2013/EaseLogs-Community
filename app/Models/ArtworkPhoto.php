@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class ArtworkPhoto extends Model
 {
@@ -45,5 +46,10 @@ class ArtworkPhoto extends Model
     public function artwork(): BelongsTo
     {
         return $this->belongsTo(Artwork::class);
+    }
+
+    public function publicUrl(): string
+    {
+        return Storage::disk('public')->url($this->file_path);
     }
 }

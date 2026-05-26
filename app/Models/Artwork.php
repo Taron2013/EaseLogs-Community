@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Artwork extends Model
 {
@@ -102,6 +103,13 @@ class Artwork extends Model
     public function photos(): HasMany
     {
         return $this->hasMany(ArtworkPhoto::class);
+    }
+
+    public function latestPhoto(): HasOne
+    {
+        return $this->hasOne(ArtworkPhoto::class)->ofMany(
+            ['is_primary' => 'max', 'uploaded_at' => 'max', 'id' => 'max'],
+        );
     }
 
     public function events(): HasMany
