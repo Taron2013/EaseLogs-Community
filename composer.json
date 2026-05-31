@@ -1,10 +1,10 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "artdoc/artdoc",
+    "name": "easelogs/easelogs",
     "type": "project",
-    "description": "ArtDoc: Open-source art inventory and documentation system. Community and commercial dual-licensed.",
-    "keywords": ["artdoc", "art", "inventory", "documentation"],
-    "license": "ArtDoc-Community OR ArtDoc-Commercial",
+    "description": "EaseLogs: self-hosted artwork inventory and documentation. Community and commercial dual-licensed.",
+    "keywords": ["easelogs", "art", "inventory", "documentation", "artist"],
+    "license": "proprietary",
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.8",

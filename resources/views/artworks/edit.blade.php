@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit: ' . ($artwork->title ?: 'Untitled') . ' — ' . config('easelogs.display_name'))
+@section('title', 'Edit: ' . $artwork->displayTitle() . ' — ' . config('easelogs.display_name'))
 
 @section('content')
     <h2 class="page-heading">Edit artwork</h2>

@@ -1,11 +1,13 @@
-ArtDoc Community License v1.0
+EaseLogs Community License v1.0
 Copyright © 2026 Douglas Cross
+
+EaseLogs (formerly developed under the working name ArtDoc) is the artwork inventory application covered by this License.
 
 TERMS AND CONDITIONS
 
 1. DEFINITIONS
 
-"Licensed Work" means the ArtDoc application software, including all source code, documentation, configuration files, assets, and any components explicitly distributed by Douglas Cross under this License.
+"Licensed Work" means the EaseLogs application software, including all source code, documentation, configuration files, assets, and any components explicitly distributed by Douglas Cross under this License.
 
 "You" means an individual or legal entity exercising permissions granted by this License.
 
@@ -45,7 +47,7 @@ d) You may not resell, relicense, sublicense, or otherwise transfer the Licensed
 
 e) You may not embed the Licensed Work in commercial products or services without prior written permission from Douglas Cross or an Authorized Licensing Agent.
 
-f) Derivative Works created under this License for non-commercial purposes must be distributed under the same ArtDoc Community License when published or redistributed.
+f) Derivative Works created under this License for non-commercial purposes must be distributed under the same EaseLogs Community License when published or redistributed.
 
 g) You must provide a copy of this License with any distribution of the Licensed Work or Derivative Works.
 

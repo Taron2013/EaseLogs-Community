@@ -17,7 +17,7 @@ Your artwork data remains under your control on your own machine.
 
 ## Downloading EaseLogs
 
-Download the latest Community Edition release ZIP from the GitHub Releases page:
+Download the latest Community Edition release ZIP from the project’s GitHub Releases page (releases may still be published under the historical repository name ArtDoc):
 
 ```text
 https://github.com/Taron2013/ArtDoc/releases

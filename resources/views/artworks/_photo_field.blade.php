@@ -17,7 +17,7 @@
             <img
                 id="photo-edit-preview"
                 src="{{ $latestPhoto->publicUrl() }}"
-                alt="Photo of {{ $artwork->title ?: 'Untitled' }}"
+                alt="Photo of {{ $artwork->displayTitle() }}"
                 class="{{ $prominentPreview ? 'artwork-photo-edit-reference' : 'artwork-photo-preview' }}"
             >
         </div>

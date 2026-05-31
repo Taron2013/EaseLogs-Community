@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', ($artwork->title ?: 'Untitled') . ' — ' . config('easelogs.display_name'))
+@section('title', $artwork->displayTitle() . ' — ' . config('easelogs.display_name'))
 
 @section('content')
-    <h2 style="margin-top:0;">{{ $artwork->title ?: 'Untitled' }}</h2>
+    <h2 style="margin-top:0;">{{ $artwork->displayTitle() }}</h2>
 
     @if ($artwork->latestPhoto?->existsOnDisk())
         <figure style="margin:0 0 1.25rem;">
-            <img src="{{ $artwork->latestPhoto->publicUrl() }}" alt="Photo of {{ $artwork->title ?: 'Untitled' }}" class="artwork-photo">
+            <img src="{{ $artwork->latestPhoto->publicUrl() }}" alt="Photo of {{ $artwork->displayTitle() }}" class="artwork-photo">
         </figure>
     @endif
 

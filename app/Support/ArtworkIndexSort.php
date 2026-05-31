@@ -180,8 +180,10 @@ class ArtworkIndexSort
     /**
      * Title sort treats null/blank as untitled without persisting the literal string.
      *
-     * DESC SQL: ORDER BY (title IS NULL OR TRIM(title) = '') DESC, title DESC
-     * ASC SQL:  ORDER BY (title IS NULL OR TRIM(title) = '') ASC, title ASC
+     * DESC SQL: ORDER BY (title IS NULL OR TRIM(title) = '') DESC,
+     *           CASE WHEN (title IS NULL OR TRIM(title) = '') THEN '' ELSE title END DESC
+     * ASC SQL:  ORDER BY (title IS NULL OR TRIM(title) = '') ASC,
+     *           CASE WHEN (title IS NULL OR TRIM(title) = '') THEN '' ELSE title END ASC
      *
      * @param  Builder<\App\Models\Artwork>  $query
      */
