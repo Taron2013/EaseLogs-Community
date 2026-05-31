@@ -82,16 +82,18 @@ It syncs your **current working tree** to the intranet deployment, runs Composer
 **Always preserved:**
 
 * deployed `.env`
-* artwork files under `storage/app/public/`
+* artwork files under `storage/app/public/` (not overwritten by rsync from dev)
 
 **Database handling (interactive prompt):**
 
 | Choice | Behavior |
 |--------|----------|
-| **1 — Preserve** | Keeps `database/database.sqlite`, runs `php artisan migrate --force` |
-| **2 — Reset** | Shows a CSV backup TODO, requires typing `RESET` to confirm, recreates SQLite, runs `php artisan migrate:fresh --force` |
+| **1 — Preserve** | Keeps `database/database.sqlite` and deploy `storage/app/public/`, runs `php artisan migrate --force`. Photo paths in SQLite must match files on disk. |
+| **2 — Reset** | Shows a CSV backup TODO, requires typing `RESET` to confirm, recreates SQLite, runs `php artisan migrate:fresh --force`. Old upload files may remain on disk but no DB rows reference them. |
 
-After a database reset, run `php artisan db:seed` on the deploy copy to create the default Community user (`admin@easelogs.local` / `password`). Change that password before exposing the app beyond your trusted local network.
+The redeploy script always verifies `public/storage` → `storage/app/public`. A broken symlink (for example pointing at an old project path) causes gray broken thumbnails even when files exist.
+
+After a database reset, open the app in your browser and complete **first-run setup** at `/setup` to create the owner account. No default password is created by seeders.
 
 ## Development roadmap
 

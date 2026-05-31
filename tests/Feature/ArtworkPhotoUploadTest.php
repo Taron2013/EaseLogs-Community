@@ -23,7 +23,7 @@ class ArtworkPhotoUploadTest extends TestCase
 
     public function test_create_artwork_with_photo_stores_file_and_metadata(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $response = $this->post('/artworks', [
             'title' => 'Sunset Study',
@@ -51,7 +51,7 @@ class ArtworkPhotoUploadTest extends TestCase
 
     public function test_update_artwork_with_new_photo_replaces_primary(): void
     {
-        $user = User::factory()->create();
+        $user = $this->signIn();
         $artwork = Artwork::factory()->for($user)->create(['title' => 'Original']);
 
         $firstPath = 'artworks/'.$artwork->id.'/first.jpg';
@@ -84,15 +84,15 @@ class ArtworkPhotoUploadTest extends TestCase
         Storage::disk('public')->assertExists($latest->file_path);
     }
 
-    public function test_index_page_shows_photo_thumbnail(): void
+    public function test_index_page_shows_photo_thumbnail_when_file_exists(): void
     {
-        $user = User::factory()->create();
+        $user = $this->signIn();
         $artwork = Artwork::factory()->for($user)->create(['title' => 'Listed Work']);
 
         $path = 'artworks/'.$artwork->id.'/listed.jpg';
         Storage::disk('public')->put($path, 'listed-image');
 
-        ArtworkPhoto::create([
+        $photo = ArtworkPhoto::create([
             'artwork_id' => $artwork->id,
             'file_path' => $path,
             'mime_type' => 'image/jpeg',
@@ -103,14 +103,38 @@ class ArtworkPhotoUploadTest extends TestCase
         $response = $this->get('/artworks');
 
         $response->assertStatus(200);
-        $response->assertSee('artwork-thumb', false);
+        $response->assertSee('<img src="'.$photo->publicUrl().'" alt="" class="artwork-thumb">', false);
         $response->assertSee('Listed Work');
+        $response->assertDontSee('<span class="artwork-thumb-placeholder">No photo</span>', false);
         $response->assertDontSee('Inventory code', false);
+    }
+
+    public function test_index_page_shows_placeholder_when_photo_record_exists_but_file_is_missing(): void
+    {
+        $user = $this->signIn();
+        $artwork = Artwork::factory()->for($user)->create(['title' => 'Missing File Work']);
+
+        ArtworkPhoto::create([
+            'artwork_id' => $artwork->id,
+            'file_path' => 'artworks/'.$artwork->id.'/missing.jpg',
+            'mime_type' => 'image/jpeg',
+            'is_primary' => true,
+            'uploaded_at' => now(),
+        ]);
+
+        Storage::disk('public')->assertMissing('artworks/'.$artwork->id.'/missing.jpg');
+
+        $response = $this->get('/artworks');
+
+        $response->assertStatus(200);
+        $response->assertSee('<span class="artwork-thumb-placeholder">No photo</span>', false);
+        $response->assertSee('Missing File Work');
+        $response->assertDontSee('<img src="/storage/artworks/'.$artwork->id.'/missing.jpg"', false);
     }
 
     public function test_show_page_displays_latest_photo(): void
     {
-        $user = User::factory()->create();
+        $user = $this->signIn();
         $artwork = Artwork::factory()->for($user)->create(['title' => 'Detail Work']);
 
         $path = 'artworks/'.$artwork->id.'/detail.jpg';
@@ -134,7 +158,7 @@ class ArtworkPhotoUploadTest extends TestCase
 
     public function test_edit_page_displays_latest_photo_reference(): void
     {
-        $user = User::factory()->create();
+        $user = $this->signIn();
         $artwork = Artwork::factory()->for($user)->create(['title' => 'Edit Reference Work']);
 
         $path = 'artworks/'.$artwork->id.'/edit-ref.jpg';
@@ -160,7 +184,7 @@ class ArtworkPhotoUploadTest extends TestCase
 
     public function test_invalid_photo_upload_is_rejected(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $response = $this->from('/artworks/create')->post('/artworks', [
             'title' => 'Bad Upload',
@@ -176,7 +200,7 @@ class ArtworkPhotoUploadTest extends TestCase
 
     public function test_delete_artwork_removes_photo_files(): void
     {
-        $user = User::factory()->create();
+        $user = $this->signIn();
         $artwork = Artwork::factory()->for($user)->create(['title' => 'Temporary']);
 
         $path = 'artworks/'.$artwork->id.'/temp.jpg';
@@ -200,7 +224,7 @@ class ArtworkPhotoUploadTest extends TestCase
 
     public function test_create_without_photo_still_works(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $response = $this->post('/artworks', [
             'title' => '',

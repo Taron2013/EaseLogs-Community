@@ -22,7 +22,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_create_and_edit_forms_show_completed_work_checkbox(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $this->get('/artworks/create')
             ->assertOk()
@@ -39,7 +39,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_completed_artwork_edit_page_checkbox_is_checked(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $artwork = Artwork::factory()->create([
             'completed_date' => '2026-02-15',
@@ -56,7 +56,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_completed_date_field_hidden_when_incomplete_on_edit(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $artwork = Artwork::factory()->create(['completed_date' => null]);
 
@@ -72,7 +72,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_completed_date_field_visible_when_complete_on_edit(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $artwork = Artwork::factory()->create([
             'completed_date' => '2026-02-15',
@@ -89,7 +89,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_create_page_hides_completed_date_when_incomplete(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $response = $this->get('/artworks/create');
 
@@ -102,7 +102,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_forms_include_script_to_toggle_completed_date_visibility(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $this->get('/artworks/create')
             ->assertSee('updateCompletedDateVisibility', false);
@@ -115,7 +115,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_unchecking_completed_work_clears_completed_date_on_update(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $artwork = Artwork::factory()->create([
             'completed_date' => '2026-02-15',
@@ -133,7 +133,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_completed_work_without_date_sets_completed_date_on_store(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $response = $this->post('/artworks', [
             'title' => 'Finished Piece',
@@ -149,7 +149,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_completed_date_rejected_when_completed_work_unchecked(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $response = $this->from('/artworks/create')->post('/artworks', [
             'title' => 'In Progress',
@@ -164,7 +164,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_completed_date_cleared_when_completed_work_unchecked_and_date_empty(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $response = $this->post('/artworks', [
             'title' => 'In Progress',
@@ -178,7 +178,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_completed_artwork_upload_blocked_without_confirmation(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $artwork = Artwork::factory()->create([
             'completed_date' => '2026-02-15',
@@ -197,7 +197,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_completed_artwork_upload_allowed_with_confirmation(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $artwork = Artwork::factory()->create([
             'completed_date' => '2026-02-15',
@@ -217,7 +217,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_incomplete_artwork_upload_does_not_require_confirmation(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $artwork = Artwork::factory()->create([
             'completed_date' => null,
@@ -236,7 +236,7 @@ class ArtworkCompletionFormTest extends TestCase
 
     public function test_create_completed_artwork_with_photo_requires_confirmation(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $response = $this->from('/artworks/create')->post('/artworks', [
             'title' => 'New Complete',

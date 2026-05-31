@@ -101,16 +101,12 @@
                 <a href="{{ route('artworks.index') }}">Artworks</a>
                 <a href="{{ route('artworks.create') }}">New artwork</a>
                 <a href="{{ route('artworks.import-export') }}">Import / Export</a>
+                <form method="POST" action="{{ route('logout') }}" style="display:inline;margin:0;">
+                    @csrf
+                    <button type="submit" class="btn" style="margin-left:0.5rem;">Sign out</button>
+                </form>
             </nav>
         </header>
-
-        @if ($showDefaultCredentialsWarning ?? false)
-            <div class="flash flash-warning" role="status">
-                <strong>Default Community account is active.</strong>
-                Email <code>admin@easelogs.local</code> with password <code>password</code>.
-                Change this password before enabling login or exposing EaseLogs beyond your trusted local network.
-            </div>
-        @endif
 
         @if (session('success'))
             <div class="flash flash-success">{{ session('success') }}</div>

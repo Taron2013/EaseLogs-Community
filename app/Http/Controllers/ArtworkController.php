@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\EnsuresCommunityUser;
 use App\Http\Requests\ArtworkRequest;
 use App\Models\Artwork;
 use App\Models\User;
@@ -12,8 +11,6 @@ use Illuminate\View\View;
 
 class ArtworkController extends Controller
 {
-    use EnsuresCommunityUser;
-
     public function __construct(
         private readonly ArtworkPhotoService $photoService,
     ) {}
@@ -25,18 +22,11 @@ class ArtworkController extends Controller
             ->latest()
             ->paginate(20);
 
-        return view('artworks.index', [
-            'artworks' => $artworks,
-            'needsUserSetup' => ! User::query()->exists(),
-        ]);
+        return view('artworks.index', compact('artworks'));
     }
 
-    public function create(): View|RedirectResponse
+    public function create(): View
     {
-        if ($redirect = $this->ensureUserExists()) {
-            return $redirect;
-        }
-
         return view('artworks.create', [
             'artwork' => new Artwork,
         ]);
@@ -44,11 +34,7 @@ class ArtworkController extends Controller
 
     public function store(ArtworkRequest $request): RedirectResponse
     {
-        if ($redirect = $this->ensureUserExists()) {
-            return $redirect;
-        }
-
-        $user = User::query()->first();
+        $user = $request->user();
         $data = $this->prepareArtworkData($request->validated(), $user);
 
         $artwork = Artwork::create($data);
@@ -80,7 +66,7 @@ class ArtworkController extends Controller
 
     public function update(ArtworkRequest $request, Artwork $artwork): RedirectResponse
     {
-        $user = User::query()->find($artwork->user_id) ?? User::query()->first();
+        $user = User::query()->find($artwork->user_id) ?? $request->user();
         $data = $this->prepareArtworkData(
             $request->validated(),
             $user,
@@ -120,5 +106,4 @@ class ArtworkController extends Controller
 
         return $data;
     }
-
 }

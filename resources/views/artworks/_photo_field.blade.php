@@ -9,7 +9,7 @@
 <div class="form-section">
     <h2>Photo</h2>
 
-    @if ($latestPhoto)
+    @if ($latestPhoto?->existsOnDisk())
         <div class="field {{ $prominentPreview ? 'artwork-edit-photo-wrap' : '' }}">
             <p class="field-hint" style="margin-top:0;">
                 {{ $prominentPreview ? 'Current artwork photo' : 'Current photo' }}
@@ -22,12 +22,18 @@
             >
         </div>
     @else
-        <p class="field-hint" style="margin-top:0;">No photo yet. Upload one below.</p>
+        <p class="field-hint" style="margin-top:0;">
+            @if ($latestPhoto)
+                Photo file is missing on disk. Upload a new image below.
+            @else
+                No photo yet. Upload one below.
+            @endif
+        </p>
         <img id="photo-edit-preview" alt="" class="artwork-photo-edit-reference" hidden>
     @endif
 
     <div class="field">
-        <label for="photo">{{ $latestPhoto ? 'Replace photo' : 'Artwork photo' }}</label>
+        <label for="photo">{{ ($latestPhoto && $latestPhoto->existsOnDisk()) ? 'Replace photo' : 'Artwork photo' }}</label>
         <input type="file" name="photo" id="photo" accept="image/jpeg,image/png,image/webp">
         <p class="field-hint">JPEG, PNG, or WebP. Max {{ $maxMb }} MB. Uploading a new photo makes it the latest primary photo.</p>
     </div>

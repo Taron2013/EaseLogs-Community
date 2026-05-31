@@ -5,7 +5,7 @@
 @section('content')
     <h2 style="margin-top:0;">{{ $artwork->title ?: 'Untitled' }}</h2>
 
-    @if ($artwork->latestPhoto)
+    @if ($artwork->latestPhoto?->existsOnDisk())
         <figure style="margin:0 0 1.25rem;">
             <img src="{{ $artwork->latestPhoto->publicUrl() }}" alt="Photo of {{ $artwork->title ?: 'Untitled' }}" class="artwork-photo">
         </figure>

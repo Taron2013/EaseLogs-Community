@@ -13,7 +13,7 @@ class CommunityEditionArtworkFieldsTest extends TestCase
 
     public function test_create_and_edit_forms_share_community_edition_fields(): void
     {
-        User::factory()->create();
+        $this->signIn();
         $artwork = Artwork::factory()->create();
 
         $create = $this->get('/artworks/create');
@@ -49,7 +49,7 @@ class CommunityEditionArtworkFieldsTest extends TestCase
 
     public function test_store_persists_community_edition_columns(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $response = $this->post('/artworks', [
             'title' => 'Studio Piece',

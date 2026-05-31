@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\EnsuresCommunityUser;
 use App\Http\Requests\ArtworkCsvImportRequest;
 use App\Models\Artwork;
-use App\Models\User;
 use App\Services\ArtworkCsvService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -13,8 +11,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ArtworkCsvController extends Controller
 {
-    use EnsuresCommunityUser;
-
     public function __construct(
         private readonly ArtworkCsvService $csvService,
     ) {}
@@ -35,11 +31,7 @@ class ArtworkCsvController extends Controller
 
     public function import(ArtworkCsvImportRequest $request): RedirectResponse
     {
-        if ($redirect = $this->ensureUserExists('artworks.import-export')) {
-            return $redirect;
-        }
-
-        $user = User::query()->firstOrFail();
+        $user = $request->user();
 
         try {
             $result = $this->csvService->import($request->file('csv'), $user);

@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Artwork;
-use App\Models\User;
 use App\Services\ArtworkCsvService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -15,7 +14,7 @@ class ArtworkCsvTest extends TestCase
 
     public function test_artworks_index_does_not_show_csv_import_form(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $response = $this->get(route('artworks.index'));
 
@@ -27,7 +26,7 @@ class ArtworkCsvTest extends TestCase
 
     public function test_import_export_page_shows_csv_controls(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $response = $this->get(route('artworks.import-export'));
 
@@ -42,7 +41,7 @@ class ArtworkCsvTest extends TestCase
 
     public function test_csv_export_downloads_successfully(): void
     {
-        User::factory()->create();
+        $this->signIn();
         Artwork::factory()->create(['title' => 'Export Me']);
 
         $response = $this->get(route('artworks.export.csv'));
@@ -55,7 +54,7 @@ class ArtworkCsvTest extends TestCase
 
     public function test_csv_export_contains_only_approved_fields(): void
     {
-        User::factory()->create();
+        $this->signIn();
         Artwork::factory()->create([
             'title' => 'Field Check',
             'start_date' => '2026-01-05',
@@ -84,7 +83,7 @@ class ArtworkCsvTest extends TestCase
 
     public function test_csv_import_creates_records(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $csv = implode("\n", [
             implode(',', ArtworkCsvService::COLUMNS),
@@ -113,7 +112,7 @@ class ArtworkCsvTest extends TestCase
 
     public function test_csv_import_rejects_invalid_columns(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $csv = "title,inventory_code\nWork,ART-001\n";
 
@@ -129,7 +128,7 @@ class ArtworkCsvTest extends TestCase
 
     public function test_csv_import_rejects_photo_columns(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $csv = "title,photo_path\nWork,/fake/photo.jpg\n";
 
@@ -145,7 +144,7 @@ class ArtworkCsvTest extends TestCase
 
     public function test_csv_import_rejects_malformed_dates(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $csv = implode("\n", [
             'title,start_date',
@@ -162,26 +161,9 @@ class ArtworkCsvTest extends TestCase
         $this->assertDatabaseCount('artworks', 0);
     }
 
-    public function test_csv_import_without_user_redirects_to_import_export_with_message(): void
-    {
-        $csv = implode("\n", [
-            'title',
-            'No User Work',
-        ]);
-
-        $response = $this->post(route('artworks.import.csv'), [
-            'csv' => UploadedFile::fake()->createWithContent('import.csv', $csv),
-        ]);
-
-        $response->assertRedirect(route('artworks.import-export'));
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString('db:seed', session('error'));
-        $this->assertDatabaseCount('artworks', 0);
-    }
-
     public function test_imported_records_appear_on_artwork_index(): void
     {
-        User::factory()->create();
+        $this->signIn();
 
         $csv = implode("\n", [
             'title,medium',

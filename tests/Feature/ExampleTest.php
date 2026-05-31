@@ -9,17 +9,17 @@ class ExampleTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_root_redirects_to_artworks(): void
+    public function test_home_redirects_to_setup_when_no_users(): void
     {
         $response = $this->get('/');
 
-        $response->assertRedirect('/artworks');
+        $response->assertRedirect(route('setup.create'));
     }
 
-    public function test_artworks_page_returns_successfully(): void
+    public function test_artworks_requires_setup_or_auth(): void
     {
         $response = $this->get('/artworks');
 
-        $response->assertStatus(200);
+        $response->assertRedirect(route('setup.create'));
     }
 }

@@ -31,4 +31,20 @@ return [
 
     'photo_mimes' => ['jpeg', 'jpg', 'png', 'webp'],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication extension point
+    |--------------------------------------------------------------------------
+    |
+    | Core ships email/password login and first-run setup only.
+    | Future OAuth providers (Google, Microsoft, Facebook, GitHub) register
+    | implementations of App\Contracts\Auth\SocialLoginProvider here.
+    | See docs/AUTH_EXTENSIONS.md.
+    |
+    */
+
+    'auth' => [
+        'social_providers' => [],
+    ],
+
 ];

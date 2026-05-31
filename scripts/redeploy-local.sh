@@ -4,7 +4,13 @@
 # /var/www/projects/easelogs (https://easelogs.local).
 #
 # LOCAL INTRANET ONLY — do not use on remote production servers.
-# This script will evolve over time.
+#
+# Database / upload consistency:
+#   Preserve (1): keeps database/database.sqlite and storage/app/public on deploy.
+#     Artwork photo rows must match files under storage/app/public/artworks/.
+#   Reset (2): wipes the DB (migrate:fresh). Orphan files may remain on disk but
+#     no artwork records reference them until you upload again.
+#   Always: validates public/storage -> storage/app/public (fixes broken symlinks).
 #
 set -euo pipefail
 
@@ -68,6 +74,30 @@ reset_deploy_database() {
   rm -f "$PROD/database/database.sqlite"
   touch "$PROD/database/database.sqlite"
   echo "    Recreated $PROD/database/database.sqlite"
+  echo "    Uploaded files under storage/app/public/ were left in place (orphans are harmless)."
+}
+
+ensure_public_storage_symlink() {
+  local expected current
+
+  expected="$(readlink -f "$PROD/storage/app/public")"
+
+  if [[ -L "$PROD/public/storage" ]]; then
+    current="$(readlink -f "$PROD/public/storage" 2>/dev/null || true)"
+    if [[ -n "$current" && "$current" == "$expected" ]]; then
+      echo "    public/storage symlink OK -> $current"
+      return 0
+    fi
+    echo "    Removing incorrect public/storage symlink (was: ${current:-unresolvable})"
+    rm -f "$PROD/public/storage"
+  elif [[ -e "$PROD/public/storage" ]]; then
+    echo "    Removing non-symlink public/storage entry"
+    rm -rf "$PROD/public/storage"
+  fi
+
+  php artisan storage:link
+  current="$(readlink -f "$PROD/public/storage" 2>/dev/null || true)"
+  echo "    public/storage symlink -> ${current:-storage/app/public}"
 }
 
 run_database_migrations() {
@@ -77,17 +107,15 @@ run_database_migrations() {
 
     if [[ "$DB_CHOICE" == "1" ]]; then
       echo "    Database mode: preserve (migrate --force)"
+      echo "    Uploads: preserving storage/app/public on deploy (must match SQLite photo paths)"
       php artisan migrate --force
     else
       echo "    Database mode: reset (migrate:fresh --force)"
+      echo "    Uploads: files may remain on disk; fresh DB has no artwork photo records"
       php artisan migrate:fresh --force
     fi
 
-    if [[ ! -L public/storage ]]; then
-      php artisan storage:link
-    else
-      echo "    public/storage symlink already exists"
-    fi
+    ensure_public_storage_symlink
 
     php artisan optimize:clear
     php artisan config:clear
@@ -185,7 +213,9 @@ fi
 step "Redeploy complete"
 echo "    Open: $DEPLOY_URL/artworks"
 if [[ "$DB_CHOICE" == "1" ]]; then
-  echo "    Deploy .env, SQLite data, and uploaded photos were preserved."
+  echo "    Deploy .env, SQLite data, and storage/app/public uploads were preserved."
+  echo "    public/storage symlink was verified."
 else
-  echo "    Deploy .env and uploaded photos were preserved; database was reset."
+  echo "    Deploy .env and storage/app/public were preserved; database was reset."
+  echo "    public/storage symlink was verified."
 fi

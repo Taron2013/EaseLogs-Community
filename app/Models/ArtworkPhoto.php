@@ -48,6 +48,12 @@ class ArtworkPhoto extends Model
         return $this->belongsTo(Artwork::class);
     }
 
+    public function existsOnDisk(): bool
+    {
+        return $this->file_path !== ''
+            && Storage::disk('public')->exists($this->file_path);
+    }
+
     public function publicUrl(): string
     {
         return Storage::disk('public')->url($this->file_path);

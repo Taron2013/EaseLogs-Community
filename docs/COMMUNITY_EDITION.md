@@ -195,8 +195,9 @@ DB_DATABASE=database/database.sqlite
 
 ```powershell
 php artisan migrate
-php artisan db:seed
 ```
+
+`php artisan db:seed` is optional (dev/demo data only). Create your owner account in the browser at `/setup` on first visit.
 
 ### Step 6: Build Frontend Assets
 
@@ -300,8 +301,9 @@ DB_DATABASE=database/database.sqlite
 
 ```bash
 php artisan migrate
-php artisan db:seed
 ```
+
+`php artisan db:seed` is optional (dev/demo data only). Create your owner account in the browser at `/setup` on first visit.
 
 ### Step 8: Build Assets
 
@@ -386,18 +388,11 @@ http://192.168.1.50:8000/artworks
 
 ## Troubleshooting
 
-### Cannot Create Artwork
+### Cannot Create Artwork / First Visit
 
-```bash
-php artisan db:seed
-```
+On a fresh install with no users, open EaseLogs in your browser. You are redirected to **first-run setup** (`/setup`) to create the owner account (name, email, password). No default password is shipped.
 
-This creates the default Community user if it does not already exist:
-
-* **Email:** `admin@easelogs.local`
-* **Password:** `password`
-
-Change that password before exposing EaseLogs beyond your trusted local network. The app shows a banner while this default account is present.
+After setup, sign in at `/login` with the account you created.
 
 ### App Will Not Load
 
@@ -444,9 +439,7 @@ npm run build
 
 If artwork creation fails after upgrading (no user record):
 
-```bash
-php artisan db:seed
-```
+After reset, open the app and complete first-run setup at `/setup` to create the owner account.
 
 Preserve:
 

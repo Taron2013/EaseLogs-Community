@@ -7,13 +7,6 @@
         <a href="{{ route('artworks.create') }}" class="btn btn-primary">New artwork</a>
     </p>
 
-    @if ($needsUserSetup ?? false)
-        <div class="flash flash-error" style="margin-top:1rem;">
-            No user account exists yet. Run <code>php artisan db:seed</code> to create the default Community account
-            (<code>admin@easelogs.local</code>).
-        </div>
-    @endif
-
     @if ($artworks->isEmpty())
         <p>No artworks yet. <a href="{{ route('artworks.create') }}">Create your first artwork</a>.</p>
     @else
@@ -35,7 +28,7 @@
                 @foreach ($artworks as $artwork)
                     <tr>
                         <td>
-                            @if ($artwork->latestPhoto)
+                            @if ($artwork->latestPhoto?->existsOnDisk())
                                 <a href="{{ route('artworks.show', $artwork) }}">
                                     <img src="{{ $artwork->latestPhoto->publicUrl() }}" alt="" class="artwork-thumb">
                                 </a>
