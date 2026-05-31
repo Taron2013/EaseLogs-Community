@@ -194,6 +194,8 @@ class ArtworkCsvService
             throw new \InvalidArgumentException('The CSV file must include a header row.');
         }
 
+        $hasApprovedColumn = false;
+
         foreach ($headers as $header) {
             if ($header === '') {
                 throw new \InvalidArgumentException('The CSV header row contains an empty column name.');
@@ -203,14 +205,25 @@ class ArtworkCsvService
                 throw new \InvalidArgumentException("The CSV column \"{$header}\" is not allowed in Community Edition.");
             }
 
-            if (! in_array($header, self::COLUMNS, true)) {
-                throw new \InvalidArgumentException("Unknown CSV column \"{$header}\". Use only approved Community Edition metadata fields.");
+            if (in_array($header, self::COLUMNS, true)) {
+                $hasApprovedColumn = true;
             }
+        }
+
+        if (! $hasApprovedColumn) {
+            throw new \InvalidArgumentException(
+                'The CSV must include at least one approved metadata column (for example title).'
+            );
         }
 
         if (count($headers) !== count(array_unique($headers))) {
             throw new \InvalidArgumentException('The CSV header row contains duplicate column names.');
         }
+    }
+
+    private function isApprovedColumn(string $header): bool
+    {
+        return in_array($header, self::COLUMNS, true);
     }
 
     /**
@@ -237,6 +250,10 @@ class ArtworkCsvService
         $mapped = array_fill_keys(self::COLUMNS, null);
 
         foreach ($headers as $index => $header) {
+            if (! $this->isApprovedColumn($header)) {
+                continue;
+            }
+
             $mapped[$header] = isset($row[$index]) ? trim((string) $row[$index]) : null;
             if ($mapped[$header] === '') {
                 $mapped[$header] = null;

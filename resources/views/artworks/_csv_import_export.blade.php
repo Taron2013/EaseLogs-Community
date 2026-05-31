@@ -9,8 +9,9 @@
 <div class="form-section" style="margin-top:1.5rem;">
     <h2 style="font-size:1rem;margin:0 0 0.5rem;">Import CSV</h2>
     <p class="field-hint" style="margin:0 0 0.75rem;">
-        Metadata only. Photos are not included in CSV import or export. Use approved columns:
-        title, start_date, completed_date, artwork_type, medium, height, width, depth, dimension_unit, notes.
+        Metadata only. Photos are not included in CSV import or export. Include any subset of approved columns
+        (title, start_date, completed_date, artwork_type, medium, height, width, depth, dimension_unit, notes).
+        Extra columns are ignored. Pro or legacy fields (inventory, photos, and similar) are rejected.
     </p>
     <form method="POST" action="{{ route('artworks.import.csv') }}" enctype="multipart/form-data" class="field-inline" style="align-items:flex-end;flex-wrap:wrap;gap:0.75rem;">
         @csrf

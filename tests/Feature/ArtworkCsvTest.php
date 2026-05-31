@@ -108,9 +108,85 @@ class ArtworkCsvTest extends TestCase
         $this->assertNotNull($artwork);
         $this->assertSame('2026-03-01', $artwork->start_date?->format('Y-m-d'));
         $this->assertSame('2026-03-15', $artwork->completed_date?->format('Y-m-d'));
+        $this->assertDatabaseCount('artwork_photos', 0);
     }
 
-    public function test_csv_import_rejects_invalid_columns(): void
+    public function test_csv_import_with_only_title_column(): void
+    {
+        $this->signIn();
+
+        $csv = "title\nTitle Only Work\n";
+
+        $this->post(route('artworks.import.csv'), [
+            'csv' => UploadedFile::fake()->createWithContent('title-only.csv', $csv),
+        ])->assertRedirect(route('artworks.import-export'))->assertSessionHas('success');
+
+        $artwork = Artwork::query()->first();
+        $this->assertNotNull($artwork);
+        $this->assertSame('Title Only Work', $artwork->title);
+        $this->assertNull($artwork->start_date);
+        $this->assertNull($artwork->medium);
+        $this->assertSame('in', $artwork->dimension_unit);
+        $this->assertDatabaseCount('artwork_photos', 0);
+    }
+
+    public function test_csv_import_with_title_and_start_date_only(): void
+    {
+        $this->signIn();
+
+        $csv = "title,start_date\nDated Work,2026-04-10\n";
+
+        $this->post(route('artworks.import.csv'), [
+            'csv' => UploadedFile::fake()->createWithContent('partial.csv', $csv),
+        ])->assertRedirect(route('artworks.import-export'))->assertSessionHas('success');
+
+        $artwork = Artwork::query()->first();
+        $this->assertNotNull($artwork);
+        $this->assertSame('Dated Work', $artwork->title);
+        $this->assertSame('2026-04-10', $artwork->start_date?->format('Y-m-d'));
+        $this->assertNull($artwork->completed_date);
+        $this->assertNull($artwork->artwork_type);
+    }
+
+    public function test_csv_import_ignores_unknown_columns(): void
+    {
+        $this->signIn();
+
+        $csv = "title,start_date,random_column,legacy_id\nIgnored Extras,2026-05-01,foo,999\n";
+
+        $this->post(route('artworks.import.csv'), [
+            'csv' => UploadedFile::fake()->createWithContent('extras.csv', $csv),
+        ])->assertRedirect(route('artworks.import-export'))->assertSessionHas('success');
+
+        $this->assertDatabaseHas('artworks', [
+            'title' => 'Ignored Extras',
+        ]);
+
+        $artwork = Artwork::query()->first();
+        $this->assertNotNull($artwork);
+        $this->assertSame('2026-05-01', $artwork->start_date?->format('Y-m-d'));
+        $this->assertDatabaseCount('artwork_photos', 0);
+    }
+
+    public function test_csv_import_subset_with_unknown_columns_maps_only_approved_fields(): void
+    {
+        $this->signIn();
+
+        $csv = "title,medium,legacy_id\nSubset Work,Ink,should-not-save\n";
+
+        $this->post(route('artworks.import.csv'), [
+            'csv' => UploadedFile::fake()->createWithContent('subset-extras.csv', $csv),
+        ])->assertRedirect(route('artworks.import-export'))->assertSessionHas('success');
+
+        $artwork = Artwork::query()->first();
+        $this->assertNotNull($artwork);
+        $this->assertSame('Subset Work', $artwork->title);
+        $this->assertSame('Ink', $artwork->medium);
+        $this->assertNull($artwork->notes);
+        $this->assertNull($artwork->height);
+    }
+
+    public function test_csv_import_rejects_disallowed_columns(): void
     {
         $this->signIn();
 
@@ -123,6 +199,21 @@ class ArtworkCsvTest extends TestCase
         $response->assertRedirect(route('artworks.import-export'));
         $response->assertSessionHas('error');
         $this->assertStringContainsString('inventory_code', session('error'));
+        $this->assertDatabaseCount('artworks', 0);
+    }
+
+    public function test_csv_import_without_approved_columns_fails(): void
+    {
+        $this->signIn();
+
+        $csv = "random_column,legacy_id\nfoo,bar\n";
+
+        $response = $this->from(route('artworks.import-export'))->post(route('artworks.import.csv'), [
+            'csv' => UploadedFile::fake()->createWithContent('no-approved.csv', $csv),
+        ]);
+
+        $response->assertRedirect(route('artworks.import-export'));
+        $response->assertSessionHas('error');
         $this->assertDatabaseCount('artworks', 0);
     }
 

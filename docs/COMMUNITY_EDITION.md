@@ -470,12 +470,12 @@ The export uses the column order above. Empty fields are left blank.
 
 ### Import CSV
 
-1. Prepare a `.csv` file with a header row using only approved column names (extra columns are rejected).
+1. Prepare a `.csv` with a header row. Include any subset of approved column names; extra columns are ignored.
 2. On the **Import / Export** page, use **Import CSV** and choose your file.
 3. Dates must use `YYYY-MM-DD` format (for example `2026-05-28`).
 4. Imported rows are added as **new** artworks for your local single-owner account.
 
-If the file has unknown columns, invalid dates, or other errors, nothing is imported and an error message explains what to fix.
+If the file has disallowed Pro/legacy columns, invalid dates, or other errors, nothing is imported and an error message explains what to fix.
 
 Add photos separately from the artwork create or edit screens after import.
 
