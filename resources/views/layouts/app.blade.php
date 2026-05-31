@@ -44,6 +44,9 @@
         table { width: 100%; border-collapse: collapse; background: #fff; }
         th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid #eee; }
         th { background: #f0f0ee; font-weight: 600; }
+        th .sort-link { color: inherit; text-decoration: none; font-weight: 600; }
+        th .sort-link:hover { text-decoration: underline; }
+        th .sort-indicator { font-size: 0.75rem; margin-left: 0.15rem; }
         .form-section { margin-bottom: 1.5rem; padding: 1.1rem 1.15rem; background: #fff; border: 1px solid #ececeb; border-radius: 10px; }
         .form-section h2 { font-size: 1rem; margin: 0 0 0.75rem; color: #303030; }
         .form-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }

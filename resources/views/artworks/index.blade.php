@@ -14,13 +14,41 @@
             <thead>
                 <tr>
                     <th>Photo</th>
-                    <th>Title</th>
-                    <th>Artwork type</th>
-                    <th>Medium</th>
-                    <th>Dimensions</th>
-                    <th>Start date</th>
-                    <th>Completed date</th>
-                    <th>Updated</th>
+                    <th>
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('title')) }}" class="sort-link">
+                            Title <span class="sort-indicator">{{ $sort->indicator('title') }}</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('artwork_type')) }}" class="sort-link">
+                            Artwork type <span class="sort-indicator">{{ $sort->indicator('artwork_type') }}</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('medium')) }}" class="sort-link">
+                            Medium <span class="sort-indicator">{{ $sort->indicator('medium') }}</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('dimensions')) }}" class="sort-link">
+                            Dimensions <span class="sort-indicator">{{ $sort->indicator('dimensions') }}</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('start_date')) }}" class="sort-link">
+                            Start date <span class="sort-indicator">{{ $sort->indicator('start_date') }}</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('completed_date')) }}" class="sort-link">
+                            Completed date <span class="sort-indicator">{{ $sort->indicator('completed_date') }}</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('updated_at')) }}" class="sort-link">
+                            Updated <span class="sort-indicator">{{ $sort->indicator('updated_at') }}</span>
+                        </a>
+                    </th>
                     <th></th>
                 </tr>
             </thead>
@@ -36,7 +64,7 @@
                                 <span class="artwork-thumb-placeholder">No photo</span>
                             @endif
                         </td>
-                        <td><a href="{{ route('artworks.show', $artwork) }}">{{ $artwork->title ?: 'Untitled' }}</a></td>
+                        <td><a href="{{ route('artworks.show', $artwork) }}">{{ $artwork->displayTitle() }}</a></td>
                         <td>{{ $artwork->artwork_type ?? '—' }}</td>
                         <td>{{ $artwork->medium ?? '—' }}</td>
                         <td>{{ $artwork->formattedDimensions() ?? '—' }}</td>

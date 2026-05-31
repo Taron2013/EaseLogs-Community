@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ArtworkRequest;
 use App\Models\Artwork;
 use App\Models\User;
+use App\Support\ArtworkIndexSort;
 use App\Services\ArtworkPhotoService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ArtworkController extends Controller
@@ -15,14 +17,20 @@ class ArtworkController extends Controller
         private readonly ArtworkPhotoService $photoService,
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
+        $sort = ArtworkIndexSort::fromRequest($request);
+
         $artworks = Artwork::query()
             ->with('latestPhoto')
-            ->latest()
-            ->paginate(20);
+            ->tap(fn ($query) => $sort->apply($query))
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('artworks.index', compact('artworks'));
+        return view('artworks.index', [
+            'artworks' => $artworks,
+            'sort' => $sort,
+        ]);
     }
 
     public function create(): View

@@ -78,6 +78,16 @@ class Artwork extends Model
         return $this->completed_date !== null;
     }
 
+    /**
+     * Label for lists and forms; blank/whitespace-only titles show as Untitled without persisting that string.
+     */
+    public function displayTitle(): string
+    {
+        $title = trim($this->title ?? '');
+
+        return $title === '' ? 'Untitled' : $title;
+    }
+
     public function formattedDimensions(): ?string
     {
         if ($this->height === null && $this->width === null && $this->depth === null) {
