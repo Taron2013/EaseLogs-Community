@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ArtworkBulkDeleteRequest;
 use App\Http\Requests\ArtworkRequest;
 use App\Models\Artwork;
 use App\Models\User;
@@ -110,12 +111,40 @@ class ArtworkController extends Controller
 
     public function destroy(Artwork $artwork): RedirectResponse
     {
-        $this->photoService->deletePhotosForArtwork($artwork);
-        $artwork->delete();
+        $this->deleteArtwork($artwork);
 
         return redirect()
             ->route('artworks.index')
             ->with('success', 'Artwork deleted successfully.');
+    }
+
+    public function bulkDestroy(ArtworkBulkDeleteRequest $request): RedirectResponse
+    {
+        $ids = $request->artworkIds();
+
+        $artworks = Artwork::query()
+            ->whereIn('id', $ids)
+            ->orderBy('id')
+            ->get();
+
+        foreach ($artworks as $artwork) {
+            $this->deleteArtwork($artwork);
+        }
+
+        $count = $artworks->count();
+        $message = $count === 1
+            ? '1 artwork deleted.'
+            : "{$count} artworks deleted.";
+
+        return redirect()
+            ->route('artworks.index', $request->indexQueryParams())
+            ->with('success', $message);
+    }
+
+    private function deleteArtwork(Artwork $artwork): void
+    {
+        $this->photoService->deletePhotosForArtwork($artwork);
+        $artwork->delete();
     }
 
     /**

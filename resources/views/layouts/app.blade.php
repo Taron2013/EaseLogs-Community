@@ -154,6 +154,22 @@
             min-width: 9rem;
         }
         .artwork-filters-clear { margin: 0.65rem 0 0; font-size: 0.85rem; }
+        .bulk-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem 0.75rem;
+            margin-bottom: 0.75rem;
+            padding: 0.65rem 0.85rem;
+            background: #fff8f8;
+            border: 1px solid #f0d4d4;
+            border-radius: 8px;
+        }
+        .bulk-actions-count { margin: 0; font-size: 0.875rem; font-weight: 500; }
+        .bulk-delete-form { display: none; }
+        .artwork-select-col { width: 3.25rem; vertical-align: middle; text-align: center; }
+        .artwork-select-label { display: block; font-size: 0.7rem; font-weight: 600; color: #555; margin-bottom: 0.25rem; }
+        .artwork-select-col input[type="checkbox"] { width: auto; max-width: none; cursor: pointer; }
         .artwork-actions { vertical-align: top; white-space: nowrap; }
         .artwork-actions-stack {
             display: flex;

@@ -34,5 +34,8 @@ Route::middleware(['setup.complete', 'auth'])->group(function (): void {
     Route::get('artworks/export/csv', [ArtworkCsvController::class, 'export'])->name('artworks.export.csv');
     Route::post('artworks/import/csv', [ArtworkCsvController::class, 'import'])->name('artworks.import.csv');
 
+    Route::delete('artworks/bulk-delete', [ArtworkController::class, 'bulkDestroy'])
+        ->name('artworks.bulk-delete');
+
     Route::resource('artworks', ArtworkController::class);
 });

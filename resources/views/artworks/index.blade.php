@@ -62,6 +62,16 @@
         @endif
     </section>
 
+    @if ($errors->any())
+        <div class="flash flash-error" role="alert">
+            <ul class="errors" style="margin:0;padding-left:1.25rem;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     @if ($artworks->isEmpty())
         @if ($filters->hasActiveFilters())
             <p>No artworks match these filters. <a href="{{ route('artworks.index', $sort->queryParams()) }}">Clear filters</a>.</p>
@@ -69,10 +79,31 @@
             <p>No artworks yet. <a href="{{ route('artworks.create') }}">Create your first artwork</a>.</p>
         @endif
     @else
+        <form id="bulk-delete-form"
+              method="POST"
+              action="{{ route('artworks.bulk-delete') }}"
+              class="bulk-delete-form">
+            @csrf
+            @method('DELETE')
+            @foreach ($indexQuery as $name => $value)
+                <input type="hidden" name="{{ $name }}" value="{{ $value }}">
+            @endforeach
+        </form>
+
+        <div id="bulk-actions" class="bulk-actions" hidden>
+            <p class="bulk-actions-count"><span id="bulk-selected-count">0</span> selected</p>
+            <button type="submit" form="bulk-delete-form" class="btn btn-danger" id="bulk-delete-submit">Delete Selected</button>
+            <button type="button" class="btn" id="bulk-clear-selection">Clear Selection</button>
+        </div>
+
         <div class="artwork-table-wrap">
         <table>
             <thead>
                 <tr>
+                    <th class="artwork-select-col">
+                        <span class="artwork-select-label">Select</span>
+                        <input type="checkbox" id="artwork-select-all" aria-label="Select all artworks on this page">
+                    </th>
                     <th>Photo</th>
                     <th>
                         <a href="{{ route('artworks.index', $sort->queryParamsFor('title', $filters->queryParams())) }}" class="sort-link">
@@ -115,6 +146,14 @@
             <tbody>
                 @foreach ($artworks as $artwork)
                     <tr>
+                        <td class="artwork-select-col">
+                            <input type="checkbox"
+                                   class="artwork-row-select"
+                                   name="ids[]"
+                                   value="{{ $artwork->id }}"
+                                   form="bulk-delete-form"
+                                   aria-label="Select {{ $artwork->displayTitle() }}">
+                        </td>
                         <td>
                             @if ($artwork->latestPhoto?->existsOnDisk())
                                 <a href="{{ route('artworks.show', $artwork) }}">
@@ -154,5 +193,70 @@
         <div class="pagination">
             {{ $artworks->links('artworks.pagination') }}
         </div>
+
+        <script>
+            (function () {
+                const selectAll = document.getElementById('artwork-select-all');
+                const rowChecks = document.querySelectorAll('.artwork-row-select');
+                const bulkBar = document.getElementById('bulk-actions');
+                const bulkCount = document.getElementById('bulk-selected-count');
+                const bulkForm = document.getElementById('bulk-delete-form');
+                const clearBtn = document.getElementById('bulk-clear-selection');
+
+                function selectedCount() {
+                    return document.querySelectorAll('.artwork-row-select:checked').length;
+                }
+
+                function updateBulkBar() {
+                    const count = selectedCount();
+                    bulkBar.hidden = count === 0;
+                    bulkCount.textContent = String(count);
+
+                    if (!selectAll) {
+                        return;
+                    }
+
+                    selectAll.checked = count > 0 && count === rowChecks.length;
+                    selectAll.indeterminate = count > 0 && count < rowChecks.length;
+                }
+
+                selectAll?.addEventListener('change', function () {
+                    rowChecks.forEach(function (checkbox) {
+                        checkbox.checked = selectAll.checked;
+                    });
+                    updateBulkBar();
+                });
+
+                rowChecks.forEach(function (checkbox) {
+                    checkbox.addEventListener('change', updateBulkBar);
+                });
+
+                clearBtn?.addEventListener('click', function () {
+                    rowChecks.forEach(function (checkbox) {
+                        checkbox.checked = false;
+                    });
+                    if (selectAll) {
+                        selectAll.checked = false;
+                        selectAll.indeterminate = false;
+                    }
+                    updateBulkBar();
+                });
+
+                bulkForm?.addEventListener('submit', function (event) {
+                    const count = selectedCount();
+                    if (count === 0) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    const noun = count === 1 ? 'artwork' : 'artworks';
+                    const message = 'Delete ' + count + ' selected ' + noun + '?\nThis action cannot be undone.';
+
+                    if (!confirm(message)) {
+                        event.preventDefault();
+                    }
+                });
+            })();
+        </script>
     @endif
 @endsection
