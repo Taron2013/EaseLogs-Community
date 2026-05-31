@@ -19,6 +19,14 @@ readonly DEPLOY_USER="${SUDO_USER:-${USER:-artistdoug}}"
 readonly DEPLOY_GROUP="http"
 readonly DEPLOY_URL="https://easelogs.local"
 
+# Application paths that must exist in source and on easelogs.local after sync.
+readonly -a REQUIRED_DEPLOY_PATHS=(
+  "scripts/redeploy-local.sh"
+  "resources/views/artworks/index.blade.php"
+  "resources/views/artworks/pagination.blade.php"
+  "app/Http/Controllers/ArtworkController.php"
+)
+
 DB_CHOICE=""
 
 step() {
@@ -75,6 +83,43 @@ reset_deploy_database() {
   touch "$PROD/database/database.sqlite"
   echo "    Recreated $PROD/database/database.sqlite"
   echo "    Uploaded files under storage/app/public/ were left in place (orphans are harmless)."
+}
+
+verify_tree_paths() {
+  local root="$1"
+  local label="$2"
+  local missing=()
+
+  for path in "${REQUIRED_DEPLOY_PATHS[@]}"; do
+    if [[ ! -e "$root/$path" ]]; then
+      missing+=("$path")
+    fi
+  done
+
+  if ((${#missing[@]} > 0)); then
+    echo "    Missing under $root:" >&2
+    printf '      - %s\n' "${missing[@]}" >&2
+    die "$label is incomplete; refusing to continue."
+  fi
+
+  echo "    $label: required application paths present (${#REQUIRED_DEPLOY_PATHS[@]} checked)"
+}
+
+sync_deploy_scripts() {
+  step "Sync scripts/ (redeploy + local helpers)"
+  mkdir -p "$PROD/scripts"
+  rsync -av \
+    --include='*.sh' \
+    --include='README*' \
+    --exclude='*' \
+    "$DEV/scripts/" "$PROD/scripts/"
+  chmod +x "$PROD/scripts/"*.sh 2>/dev/null || true
+
+  echo "    Scripts on deploy target:"
+  for script in "$PROD/scripts/"*.sh; do
+    [[ -f "$script" ]] || continue
+    echo "      - $script"
+  done
 }
 
 ensure_public_storage_symlink() {
@@ -163,10 +208,15 @@ else
   echo "    Database: reset with migrate:fresh after sync"
 fi
 
+verify_tree_paths "$DEV" "Source tree"
+
 step "Prepare ownership for sync (requires sudo)"
 sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$PROD"
 
-step "Sync code (rsync)"
+step "Sync application code (rsync)"
+echo "    Synced: app/, resources/views/, routes/, config/, database/migrations/, public/build assets source, etc."
+echo "    Preserved on target: .env, database/database.sqlite, storage/app/public uploads"
+echo "    Excluded from overwrite: vendor/, node_modules/, compiled views/cache/sessions"
 rsync -av --delete \
   --exclude=".git" \
   --exclude="node_modules" \
@@ -181,6 +231,9 @@ rsync -av --delete \
   --exclude="storage/framework/views/" \
   --exclude="storage/app/public/" \
   "$DEV/" "$PROD/"
+
+sync_deploy_scripts
+verify_tree_paths "$PROD" "Deploy tree"
 
 step "Install PHP dependencies"
 (
@@ -212,6 +265,10 @@ fi
 
 step "Redeploy complete"
 echo "    Open: $DEPLOY_URL/artworks"
+echo "    Redeploy again from: $PROD/scripts/redeploy-local.sh"
+if [[ -x "$PROD/scripts/community-edition.sh" ]]; then
+  echo "    Local dev helper: $PROD/scripts/community-edition.sh (setup|check|test|serve)"
+fi
 if [[ "$DB_CHOICE" == "1" ]]; then
   echo "    Deploy .env, SQLite data, and storage/app/public uploads were preserved."
   echo "    public/storage symlink was verified."

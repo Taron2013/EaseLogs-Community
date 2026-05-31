@@ -75,6 +75,49 @@
         .detail-grid dt { font-weight: 500; color: #555; }
         .detail-grid dd { margin: 0; }
         .pagination { margin-top: 1rem; }
+        .easelogs-pagination { margin-top: 1rem; }
+        .easelogs-pagination-list {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.5rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .easelogs-pagination-link,
+        .easelogs-pagination-disabled,
+        .easelogs-pagination-current,
+        .easelogs-pagination-ellipsis {
+            display: inline-block;
+            font-size: 0.875rem;
+            line-height: 1.4;
+            padding: 0.3rem 0.55rem;
+            border-radius: 4px;
+        }
+        .easelogs-pagination-link {
+            text-decoration: none;
+            border: 1px solid #d8d8d6;
+            background: #fff;
+            color: #1a4d8c;
+        }
+        .easelogs-pagination-link:hover { background: #f0f0ee; }
+        .easelogs-pagination-current {
+            font-weight: 600;
+            background: #e8e8e6;
+            border: 1px solid #d0d0ce;
+            color: #1a1a1a;
+        }
+        .easelogs-pagination-disabled {
+            color: #999;
+            border: 1px solid #ececeb;
+            background: #fafaf8;
+        }
+        .easelogs-pagination-ellipsis {
+            color: #666;
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+        }
         .artwork-filters {
             margin-bottom: 1.25rem;
             padding: 0.85rem 1rem;

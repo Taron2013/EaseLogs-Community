@@ -75,7 +75,9 @@ chmod +x scripts/redeploy-local.sh
 
 **LOCAL `easelogs.local` only** — not for remote production. The script will evolve over time.
 
-It syncs your **current working tree** to the intranet deployment, runs Composer, `npm run build`, and fixes permissions for `storage`, `bootstrap/cache`, and `database`.
+It syncs your **current working tree** to the intranet deployment (including `scripts/`, Blade views such as `resources/views/artworks/pagination.blade.php`, and PHP app code), runs Composer, `npm run build`, and fixes permissions for `storage`, `bootstrap/cache`, and `database`.
+
+Before syncing, the script verifies required deploy paths exist in your source tree. After syncing, it re-syncs `scripts/` explicitly, marks `*.sh` executable on the server, and verifies the deploy tree again (so missing views like the artworks pagination partial fail fast instead of causing HTTP 500).
 
 **Always preserved:**
 

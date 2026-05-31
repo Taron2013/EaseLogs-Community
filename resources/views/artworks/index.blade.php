@@ -152,7 +152,7 @@
         </div>
 
         <div class="pagination">
-            {{ $artworks->links() }}
+            {{ $artworks->links('artworks.pagination') }}
         </div>
     @endif
 @endsection
