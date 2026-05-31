@@ -121,9 +121,11 @@ class ArtworkCsvService
 
         $errors = [];
 
-        foreach ($rows as $row) {
-            $rowErrors = $this->validateRow($row['values'], $row['line']);
+        foreach ($rows as $index => $row) {
+            $normalized = $this->normalizeDateFields($row['values'], $row['line'], $errors);
+            $rowErrors = $this->validateRow($normalized, $row['line']);
             array_push($errors, ...$rowErrors);
+            $rows[$index]['values'] = $normalized;
         }
 
         if ($errors !== []) {
@@ -132,7 +134,7 @@ class ArtworkCsvService
 
         $created = 0;
 
-        DB::transaction(function () use ($rows, $user, &$created): void {
+        DB::transaction(function () use (&$rows, $user, &$created): void {
             foreach ($rows as $row) {
                 Artwork::create([
                     'user_id' => $user->id,
@@ -180,9 +182,20 @@ class ArtworkCsvService
     private function normalizeHeaders(array $headers): array
     {
         return array_map(
-            static fn (?string $header): string => strtolower(trim((string) $header)),
+            fn (?string $header): string => $this->normalizeHeaderName($header),
             $headers
         );
+    }
+
+    private function normalizeHeaderName(?string $header): string
+    {
+        $header = strtolower(trim((string) $header));
+
+        if (str_starts_with($header, "\xEF\xBB\xBF")) {
+            $header = substr($header, 3);
+        }
+
+        return $header;
     }
 
     /**
@@ -264,6 +277,141 @@ class ArtworkCsvService
     }
 
     /**
+     * Normalize a CSV date or date-time string to YYYY-MM-DD for database storage.
+     *
+     * Slash-separated dates use US order (MM/DD/YYYY or MM/DD/YY). Returns null for blank or unparseable values.
+     */
+    public function normalizeDateForImport(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/^(\d{4}-\d{2}-\d{2})(?:[T\s]\d{1,2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?$/', $value, $matches)) {
+            $parsed = $this->parseDateWithFormat($matches[1], 'Y-m-d');
+
+            if ($parsed !== null) {
+                return $parsed->format('Y-m-d');
+            }
+        }
+
+        foreach ($this->importDateFormats() as $format) {
+            $parsed = $this->parseDateWithFormat($value, $format);
+
+            if ($parsed !== null) {
+                return $parsed->format('Y-m-d');
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Explicit import formats, most specific first. US slash and dash dates use MM/DD/YYYY or MM/DD/YY.
+     *
+     * @return list<string>
+     */
+    private function importDateFormats(): array
+    {
+        return [
+            'Y-m-d',
+            'Y/m/d',
+            'Y.m.d',
+            'n/j/Y',
+            'm/d/Y',
+            'n-j-Y',
+            'm-d-Y',
+            'n/j/y',
+            'm/d/y',
+            'n-j-y',
+            'm-d-y',
+            'F j, Y',
+            'F j Y',
+            'j F Y',
+        ];
+    }
+
+    private function parseDateWithFormat(string $value, string $format): ?Carbon
+    {
+        try {
+            $parsed = Carbon::createFromFormat($format, $value, 'UTC');
+        } catch (InvalidFormatException) {
+            return null;
+        }
+
+        if ($parsed === false) {
+            return null;
+        }
+
+        $errors = Carbon::getLastErrors();
+
+        if (($errors['error_count'] ?? 0) > 0 || ($errors['warning_count'] ?? 0) > 0) {
+            return null;
+        }
+
+        if ($this->formatUsesTwoDigitYear($format)) {
+            $parsed = $parsed->setYear($this->expandTwoDigitYear((int) $parsed->format('y')));
+        }
+
+        if ($parsed->format($format) !== $value) {
+            return null;
+        }
+
+        return $parsed;
+    }
+
+    private function formatUsesTwoDigitYear(string $format): bool
+    {
+        return str_contains($format, 'y') && ! str_contains($format, 'Y');
+    }
+
+    /**
+     * Map two-digit years to four-digit years (00–69 => 2000–2069, 70–99 => 1970–1999).
+     */
+    private function expandTwoDigitYear(int $twoDigitYear): int
+    {
+        if ($twoDigitYear >= 0 && $twoDigitYear <= 69) {
+            return 2000 + $twoDigitYear;
+        }
+
+        return 1900 + $twoDigitYear;
+    }
+
+    /**
+     * @param  array<string, string|null>  $values
+     * @param  list<string>  $errors
+     * @return array<string, string|null>
+     */
+    private function normalizeDateFields(array $values, int $line, array &$errors): array
+    {
+        foreach (['start_date', 'completed_date'] as $dateField) {
+            $raw = $values[$dateField] ?? null;
+
+            if ($raw === null) {
+                continue;
+            }
+
+            $normalized = $this->normalizeDateForImport($raw);
+
+            if ($normalized === null) {
+                $errors[] = "Row {$line}: Invalid {$dateField} \"{$raw}\". Use a recognizable date (for example YYYY-MM-DD or MM/DD/YYYY).";
+
+                continue;
+            }
+
+            $values[$dateField] = $normalized;
+        }
+
+        return $values;
+    }
+
+    /**
      * @param  array<string, string|null>  $values
      * @return list<string>
      */
@@ -271,23 +419,9 @@ class ArtworkCsvService
     {
         $errors = [];
 
-        foreach (['start_date', 'completed_date'] as $dateField) {
-            $value = $values[$dateField] ?? null;
-
-            if ($value === null) {
-                continue;
-            }
-
-            if (! $this->isValidDate($value)) {
-                $errors[] = "Row {$line}: Invalid {$dateField} \"{$value}\". Use YYYY-MM-DD format.";
-            }
-        }
-
         if (
             $values['start_date'] !== null
             && $values['completed_date'] !== null
-            && $this->isValidDate($values['start_date'])
-            && $this->isValidDate($values['completed_date'])
             && $values['completed_date'] < $values['start_date']
         ) {
             $errors[] = "Row {$line}: completed_date must be on or after start_date.";
@@ -308,25 +442,17 @@ class ArtworkCsvService
         return $errors;
     }
 
-    private function isValidDate(string $value): bool
-    {
-        try {
-            Carbon::createFromFormat('Y-m-d', $value);
-
-            return true;
-        } catch (InvalidFormatException) {
-            return false;
-        }
-    }
-
     /**
      * @param  array<string, string|null>  $values
      * @return array<string, mixed>
      */
     private function attributesFromRow(array $values): array
     {
+        $title = $values['title'] ?? null;
+        $title = $title === null ? '' : $title;
+
         return [
-            'title' => $values['title'] ?? '',
+            'title' => $title,
             'start_date' => $values['start_date'],
             'completed_date' => $values['completed_date'],
             'artwork_type' => $values['artwork_type'],
