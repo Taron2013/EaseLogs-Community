@@ -41,6 +41,7 @@
         .btn-danger { background: #b71c1c; color: #fff; border-color: #b71c1c; }
         .page-heading { margin-top: 0; margin-bottom: 0.35rem; font-size: 1.5rem; color: #1a1a1a; }
         .page-intro { margin-top: 0; margin-bottom: 1.5rem; color: #555; max-width: 40rem; line-height: 1.6; }
+        .artwork-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; background: #fff; }
         th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid #eee; }
         th { background: #f0f0ee; font-weight: 600; }
@@ -74,6 +75,62 @@
         .detail-grid dt { font-weight: 500; color: #555; }
         .detail-grid dd { margin: 0; }
         .pagination { margin-top: 1rem; }
+        .artwork-filters {
+            margin-bottom: 1.25rem;
+            padding: 0.85rem 1rem;
+            background: #fff;
+            border: 1px solid #ececeb;
+            border-radius: 8px;
+        }
+        .artwork-filters-label { margin: 0 0 0.5rem; font-size: 0.8rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.04em; }
+        .artwork-filters-quick { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.75rem; }
+        .filter-pill {
+            display: inline-block;
+            padding: 0.25rem 0.55rem;
+            font-size: 0.8rem;
+            text-decoration: none;
+            border: 1px solid #d8d8d6;
+            border-radius: 999px;
+            background: #fafaf8;
+            color: #333;
+        }
+        .filter-pill:hover { background: #f0f0ee; }
+        .filter-pill.is-active { background: #1a4d8c; border-color: #1a4d8c; color: #fff; }
+        .artwork-filters-fields {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 0.5rem 0.75rem;
+        }
+        .artwork-filters-fields label { font-size: 0.8rem; font-weight: 500; color: #555; }
+        .artwork-filters-fields select {
+            padding: 0.35rem 0.45rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font: inherit;
+            min-width: 9rem;
+        }
+        .artwork-filters-clear { margin: 0.65rem 0 0; font-size: 0.85rem; }
+        .artwork-actions { vertical-align: top; white-space: nowrap; }
+        .artwork-actions-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.2rem;
+        }
+        .artwork-action-link { font-size: 0.875rem; }
+        .artwork-action-delete-form { margin: 0; }
+        .artwork-action-delete {
+            padding: 0;
+            border: none;
+            background: none;
+            font: inherit;
+            font-size: 0.875rem;
+            color: #8b3a3a;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .artwork-action-delete:hover { color: #b71c1c; }
         .artwork-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 4px; background: #eee; display: block; }
         .artwork-thumb-placeholder { width: 64px; height: 64px; border-radius: 4px; background: #ececeb; color: #888; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0.25rem; }
         .artwork-photo { max-width: 100%; max-height: 32rem; border-radius: 8px; border: 1px solid #ececeb; background: #fff; }

@@ -113,14 +113,30 @@ class ArtworkIndexSort
     /**
      * @return array<string, string>
      */
-    public function queryParamsFor(string $column): array
+    public function queryParams(): array
+    {
+        if ($this->usingDefaultListing) {
+            return [];
+        }
+
+        return [
+            'sort' => $this->column,
+            'direction' => $this->direction,
+        ];
+    }
+
+    /**
+     * @param  array<string, string>  $preserve
+     * @return array<string, string>
+     */
+    public function queryParamsFor(string $column, array $preserve = []): array
     {
         $normalized = $this->normalizeSortKey($column) ?? self::DEFAULT_SORT;
 
-        return [
+        return array_merge($preserve, [
             'sort' => $normalized,
             'direction' => $this->nextDirectionFor($normalized),
-        ];
+        ]);
     }
 
     /**

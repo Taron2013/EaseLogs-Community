@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ArtworkRequest;
 use App\Models\Artwork;
 use App\Models\User;
+use App\Support\ArtworkIndexFilters;
 use App\Support\ArtworkIndexSort;
 use App\Services\ArtworkPhotoService;
 use Illuminate\Http\RedirectResponse;
@@ -19,17 +20,32 @@ class ArtworkController extends Controller
 
     public function index(Request $request): View
     {
+        $filters = ArtworkIndexFilters::fromRequest($request);
         $sort = ArtworkIndexSort::fromRequest($request);
 
         $artworks = Artwork::query()
             ->with('latestPhoto')
+            ->tap(fn ($query) => $filters->apply($query))
             ->tap(fn ($query) => $sort->apply($query))
             ->paginate(20)
             ->withQueryString();
 
         return view('artworks.index', [
             'artworks' => $artworks,
+            'filters' => $filters,
             'sort' => $sort,
+            'artworkTypes' => Artwork::query()
+                ->whereNotNull('artwork_type')
+                ->where('artwork_type', '!=', '')
+                ->distinct()
+                ->orderBy('artwork_type')
+                ->pluck('artwork_type'),
+            'mediums' => Artwork::query()
+                ->whereNotNull('medium')
+                ->where('medium', '!=', '')
+                ->distinct()
+                ->orderBy('medium')
+                ->pluck('medium'),
         ]);
     }
 
