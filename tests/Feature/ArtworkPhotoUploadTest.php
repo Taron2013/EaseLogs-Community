@@ -27,8 +27,7 @@ class ArtworkPhotoUploadTest extends TestCase
 
         $response = $this->post('/artworks', [
             'title' => 'Sunset Study',
-            'started_date' => now()->format('Y-m-d'),
-            'finished_painting' => 0,
+            'start_date' => now()->format('Y-m-d'),
             'medium' => 'Oil',
             'photo' => UploadedFile::fake()->image('sunset.jpg', 800, 600),
         ]);
@@ -45,6 +44,7 @@ class ArtworkPhotoUploadTest extends TestCase
         $this->assertSame(800, $photo->width);
         $this->assertSame(600, $photo->height);
         $this->assertNotNull($photo->uploaded_at);
+        $this->assertNotEmpty($photo->file_path);
 
         Storage::disk('public')->assertExists($photo->file_path);
     }
@@ -52,12 +52,7 @@ class ArtworkPhotoUploadTest extends TestCase
     public function test_update_artwork_with_new_photo_replaces_primary(): void
     {
         $user = User::factory()->create();
-        $artwork = Artwork::create([
-            'user_id' => $user->id,
-            'inventory_code' => 'ART-2026-0001',
-            'title' => 'Original',
-            'status' => 'in_progress',
-        ]);
+        $artwork = Artwork::factory()->for($user)->create(['title' => 'Original']);
 
         $firstPath = 'artworks/'.$artwork->id.'/first.jpg';
         Storage::disk('public')->put($firstPath, 'first-image');
@@ -72,7 +67,7 @@ class ArtworkPhotoUploadTest extends TestCase
 
         $response = $this->put('/artworks/'.$artwork->id, [
             'title' => 'Original',
-            'status' => 'in_progress',
+            'completed_work' => 0,
             'photo' => UploadedFile::fake()->image('updated.jpg', 400, 300),
         ]);
 
@@ -92,12 +87,7 @@ class ArtworkPhotoUploadTest extends TestCase
     public function test_index_page_shows_photo_thumbnail(): void
     {
         $user = User::factory()->create();
-        $artwork = Artwork::create([
-            'user_id' => $user->id,
-            'inventory_code' => 'ART-2026-0002',
-            'title' => 'Listed Work',
-            'status' => 'in_progress',
-        ]);
+        $artwork = Artwork::factory()->for($user)->create(['title' => 'Listed Work']);
 
         $path = 'artworks/'.$artwork->id.'/listed.jpg';
         Storage::disk('public')->put($path, 'listed-image');
@@ -115,17 +105,13 @@ class ArtworkPhotoUploadTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('artwork-thumb', false);
         $response->assertSee('Listed Work');
+        $response->assertDontSee('Inventory code', false);
     }
 
     public function test_show_page_displays_latest_photo(): void
     {
         $user = User::factory()->create();
-        $artwork = Artwork::create([
-            'user_id' => $user->id,
-            'inventory_code' => 'ART-2026-0003',
-            'title' => 'Detail Work',
-            'status' => 'in_progress',
-        ]);
+        $artwork = Artwork::factory()->for($user)->create(['title' => 'Detail Work']);
 
         $path = 'artworks/'.$artwork->id.'/detail.jpg';
         Storage::disk('public')->put($path, 'detail-image');
@@ -143,17 +129,13 @@ class ArtworkPhotoUploadTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('artwork-photo', false);
         $response->assertSee('Detail Work');
+        $response->assertDontSee('Estimated value', false);
     }
 
     public function test_edit_page_displays_latest_photo_reference(): void
     {
         $user = User::factory()->create();
-        $artwork = Artwork::create([
-            'user_id' => $user->id,
-            'inventory_code' => 'ART-2026-0005',
-            'title' => 'Edit Reference Work',
-            'status' => 'in_progress',
-        ]);
+        $artwork = Artwork::factory()->for($user)->create(['title' => 'Edit Reference Work']);
 
         $path = 'artworks/'.$artwork->id.'/edit-ref.jpg';
         Storage::disk('public')->put($path, 'edit-ref-image');
@@ -172,6 +154,8 @@ class ArtworkPhotoUploadTest extends TestCase
         $response->assertSee('artwork-photo-edit-reference', false);
         $response->assertSee('Current artwork photo');
         $response->assertSee('Edit Reference Work');
+        $response->assertDontSee('Inventory code', false);
+        $response->assertDontSee('SKU', false);
     }
 
     public function test_invalid_photo_upload_is_rejected(): void
@@ -180,7 +164,7 @@ class ArtworkPhotoUploadTest extends TestCase
 
         $response = $this->from('/artworks/create')->post('/artworks', [
             'title' => 'Bad Upload',
-            'started_date' => now()->format('Y-m-d'),
+            'start_date' => now()->format('Y-m-d'),
             'photo' => UploadedFile::fake()->create('notes.txt', 10, 'text/plain'),
         ]);
 
@@ -193,12 +177,7 @@ class ArtworkPhotoUploadTest extends TestCase
     public function test_delete_artwork_removes_photo_files(): void
     {
         $user = User::factory()->create();
-        $artwork = Artwork::create([
-            'user_id' => $user->id,
-            'inventory_code' => 'ART-2026-0004',
-            'title' => 'Temporary',
-            'status' => 'in_progress',
-        ]);
+        $artwork = Artwork::factory()->for($user)->create(['title' => 'Temporary']);
 
         $path = 'artworks/'.$artwork->id.'/temp.jpg';
         Storage::disk('public')->put($path, 'temp-image');
@@ -225,12 +204,17 @@ class ArtworkPhotoUploadTest extends TestCase
 
         $response = $this->post('/artworks', [
             'title' => '',
-            'started_date' => now()->format('Y-m-d'),
-            'finished_painting' => 0,
+            'start_date' => now()->format('Y-m-d'),
             'medium' => 'Acrylic',
+            'artwork_type' => 'Painting',
         ]);
 
         $response->assertRedirect('/artworks');
         $this->assertDatabaseCount('artwork_photos', 0);
+        $this->assertDatabaseHas('artworks', [
+            'title' => '',
+            'medium' => 'Acrylic',
+            'artwork_type' => 'Painting',
+        ]);
     }
 }

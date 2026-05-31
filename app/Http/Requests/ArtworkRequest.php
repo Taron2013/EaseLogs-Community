@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Artwork;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class ArtworkRequest extends FormRequest
 {
@@ -13,53 +13,27 @@ class ArtworkRequest extends FormRequest
      */
     public function rules(): array
     {
-        $artworkId = $this->route('artwork')?->id;
-
         return [
             'title' => ['nullable', 'string', 'max:255'],
-            'inventory_code' => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('artworks', 'inventory_code')->ignore($artworkId),
-            ],
-            'sku' => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('artworks', 'sku')->ignore($artworkId),
-            ],
-            'description' => ['nullable', 'string'],
-            'started_date' => ['nullable', 'date'],
-            'started_date_is_estimated' => ['nullable', 'boolean'],
-            'finished_date' => [
+            'completed_work' => ['nullable', 'boolean'],
+            'start_date' => ['nullable', 'date'],
+            'completed_date' => [
                 'nullable',
                 'date',
+                Rule::prohibitedIf(fn (): bool => ! $this->boolean('completed_work')),
                 Rule::when(
-                    $this->filled('started_date'),
-                    ['after_or_equal:started_date']
+                    $this->boolean('completed_work') && $this->filled('start_date'),
+                    ['after_or_equal:start_date']
                 ),
             ],
-            'finished_date_is_estimated' => ['nullable', 'boolean'],
-            'finished_painting' => ['nullable', 'boolean'],
-            'professional_art_reproduction_photo' => ['nullable', 'boolean'],
+            'artwork_type' => ['nullable', 'string', 'max:255'],
             'medium' => ['nullable', 'string', 'max:255'],
-            'surface' => ['nullable', 'string', 'max:255'],
-            'width' => ['nullable', 'numeric', 'min:0'],
             'height' => ['nullable', 'numeric', 'min:0'],
+            'width' => ['nullable', 'numeric', 'min:0'],
             'depth' => ['nullable', 'numeric', 'min:0'],
             'dimension_unit' => ['nullable', 'string', 'max:10'],
-            'category' => ['nullable', 'string', 'max:255'],
-            'style' => ['nullable', 'string', 'max:255'],
-            'subject' => ['nullable', 'string', 'max:255'],
-            'status' => ['nullable', Rule::in(Artwork::STATUSES)],
-            'condition' => ['nullable', Rule::in(Artwork::CONDITIONS)],
-            'location' => ['nullable', 'string', 'max:255'],
-            'storage_area' => ['nullable', 'string', 'max:255'],
-            'estimated_value' => ['nullable', 'numeric', 'min:0'],
-            'sale_price' => ['nullable', 'numeric', 'min:0'],
-            'currency' => ['nullable', 'string', 'max:10'],
             'notes' => ['nullable', 'string'],
+            'confirm_completed_photo_upload' => ['nullable', 'boolean'],
             'photo' => [
                 'nullable',
                 'image',
@@ -69,16 +43,48 @@ class ArtworkRequest extends FormRequest
         ];
     }
 
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if (
+                ! $this->boolean('completed_work')
+                && trim((string) $this->input('completed_date', '')) !== ''
+            ) {
+                $validator->errors()->add(
+                    'completed_date',
+                    'Completed date is only allowed when the artwork is marked as completed work.'
+                );
+            }
+
+            if (
+                $this->boolean('completed_work')
+                && $this->hasFile('photo')
+                && ! $this->boolean('confirm_completed_photo_upload')
+            ) {
+                $validator->errors()->add(
+                    'confirm_completed_photo_upload',
+                    'Confirm that you understand this will replace or add a new image for a completed artwork.'
+                );
+            }
+        });
+    }
+
     protected function prepareForValidation(): void
     {
         $title = $this->input('title');
 
         $this->merge([
             'title' => ($title === null || trim((string) $title) === '') ? '' : $title,
-            'started_date_is_estimated' => $this->boolean('started_date_is_estimated'),
-            'finished_date_is_estimated' => $this->boolean('finished_date_is_estimated'),
-            'finished_painting' => $this->boolean('finished_painting'),
-            'professional_art_reproduction_photo' => $this->boolean('professional_art_reproduction_photo'),
+            'completed_work' => $this->boolean('completed_work'),
+            'confirm_completed_photo_upload' => $this->boolean('confirm_completed_photo_upload'),
         ]);
+
+        if (! $this->boolean('completed_work')) {
+            if (trim((string) $this->input('completed_date', '')) === '') {
+                $this->merge(['completed_date' => null]);
+            }
+        } elseif (! $this->filled('completed_date')) {
+            $this->merge(['completed_date' => now()->format('Y-m-d')]);
+        }
     }
 }

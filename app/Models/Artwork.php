@@ -2,45 +2,24 @@
 
 namespace App\Models;
 
+use Database\Factories\ArtworkFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Artwork extends Model
 {
-    public const STATUSES = [
-        'in_progress',
-        'in_inventory',
-        'available',
-        'reserved',
-        'sold',
-        'gifted',
-        'on_display',
-        'in_storage',
-        'archived',
-    ];
-
-    public const CONDITIONS = [
-        'excellent',
-        'good',
-        'fair',
-        'needs_repair',
-        'damaged',
-    ];
-
-    /** @use HasFactory<\Database\Factories\ArtworkFactory> */
+    /** @use HasFactory<ArtworkFactory> */
     use HasFactory;
 
     /**
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status' => 'in_progress',
         'title' => '',
-        'professional_art_reproduction_photo' => false,
+        'dimension_unit' => 'in',
     ];
 
     /**
@@ -48,32 +27,16 @@ class Artwork extends Model
      */
     protected $fillable = [
         'user_id',
-        'inventory_code',
-        'sku',
         'title',
-        'description',
-        'started_date',
-        'started_date_is_estimated',
-        'finished_date',
-        'finished_date_is_estimated',
+        'start_date',
+        'completed_date',
+        'artwork_type',
         'medium',
-        'surface',
-        'width',
         'height',
+        'width',
         'depth',
         'dimension_unit',
-        'category',
-        'style',
-        'subject',
-        'status',
-        'condition',
-        'location',
-        'storage_area',
-        'estimated_value',
-        'sale_price',
-        'currency',
         'notes',
-        'professional_art_reproduction_photo',
     ];
 
     /**
@@ -82,16 +45,11 @@ class Artwork extends Model
     protected function casts(): array
     {
         return [
-            'started_date' => 'date',
-            'finished_date' => 'date',
-            'started_date_is_estimated' => 'boolean',
-            'finished_date_is_estimated' => 'boolean',
-            'width' => 'decimal:2',
+            'start_date' => 'date',
+            'completed_date' => 'date',
             'height' => 'decimal:2',
+            'width' => 'decimal:2',
             'depth' => 'decimal:2',
-            'estimated_value' => 'decimal:2',
-            'sale_price' => 'decimal:2',
-            'professional_art_reproduction_photo' => 'boolean',
         ];
     }
 
@@ -112,13 +70,24 @@ class Artwork extends Model
         );
     }
 
-    public function events(): HasMany
+    /**
+     * Approved display label for dimensions (height × width × depth unit).
+     */
+    public function isCompleted(): bool
     {
-        return $this->hasMany(ArtworkEvent::class);
+        return $this->completed_date !== null;
     }
 
-    public function tags(): BelongsToMany
+    public function formattedDimensions(): ?string
     {
-        return $this->belongsToMany(ArtworkTag::class, 'artwork_tag');
+        if ($this->height === null && $this->width === null && $this->depth === null) {
+            return null;
+        }
+
+        $height = $this->height ?? '?';
+        $width = $this->width ?? '?';
+        $depth = $this->depth ?? '?';
+
+        return "{$height} × {$width} × {$depth} {$this->dimension_unit}";
     }
 }

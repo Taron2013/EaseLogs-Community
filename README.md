@@ -66,6 +66,33 @@ php artisan storage:link
 
 Without this step, photo uploads save correctly but thumbnails and detail images will not display.
 
+### Local intranet redeploy (Manjaro)
+
+For testing deploys to the nginx/php-fpm copy at `https://easelogs.local` (`/var/www/projects/easelogs`), run from the project root:
+
+```bash
+chmod +x scripts/redeploy-local.sh
+./scripts/redeploy-local.sh
+```
+
+**LOCAL `easelogs.local` only** — not for remote production. The script will evolve over time.
+
+It syncs your **current working tree** to the intranet deployment, runs Composer, `npm run build`, and fixes permissions for `storage`, `bootstrap/cache`, and `database`.
+
+**Always preserved:**
+
+* deployed `.env`
+* artwork files under `storage/app/public/`
+
+**Database handling (interactive prompt):**
+
+| Choice | Behavior |
+|--------|----------|
+| **1 — Preserve** | Keeps `database/database.sqlite`, runs `php artisan migrate --force` |
+| **2 — Reset** | Shows a CSV backup TODO, requires typing `RESET` to confirm, recreates SQLite, runs `php artisan migrate:fresh --force` |
+
+After a database reset, run `php artisan db:seed` on the deploy copy to create the default Community user (`admin@easelogs.local` / `password`). Change that password before exposing the app beyond your trusted local network.
+
 ## Development roadmap
 
 | Phase | Status | Description |

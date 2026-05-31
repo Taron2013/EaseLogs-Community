@@ -25,6 +25,7 @@
         .flash { padding: 0.75rem 1rem; margin-bottom: 1rem; border-radius: 4px; }
         .flash-success { background: #e8f5e9; border: 1px solid #a5d6a7; }
         .flash-error { background: #ffebee; border: 1px solid #ef9a9a; }
+        .flash-warning { background: #fff8e1; border: 1px solid #ffe082; color: #5d4e37; }
         .btn {
             display: inline-block;
             padding: 0.4rem 0.75rem;
@@ -99,8 +100,17 @@
             <nav>
                 <a href="{{ route('artworks.index') }}">Artworks</a>
                 <a href="{{ route('artworks.create') }}">New artwork</a>
+                <a href="{{ route('artworks.import-export') }}">Import / Export</a>
             </nav>
         </header>
+
+        @if ($showDefaultCredentialsWarning ?? false)
+            <div class="flash flash-warning" role="status">
+                <strong>Default Community account is active.</strong>
+                Email <code>admin@easelogs.local</code> with password <code>password</code>.
+                Change this password before enabling login or exposing EaseLogs beyond your trusted local network.
+            </div>
+        @endif
 
         @if (session('success'))
             <div class="flash flash-success">{{ session('success') }}</div>

@@ -17,88 +17,20 @@
     </p>
 
     <dl class="detail-grid">
-        <dt>Inventory code</dt>
-        <dd>{{ $artwork->inventory_code }}</dd>
+        <dt>Start date</dt>
+        <dd>{{ $artwork->start_date?->format('Y-m-d') ?? '—' }}</dd>
 
-        <dt>SKU</dt>
-        <dd>{{ $artwork->sku ?? '—' }}</dd>
+        <dt>Completed date</dt>
+        <dd>{{ $artwork->completed_date?->format('Y-m-d') ?? '—' }}</dd>
 
-        <dt>Description</dt>
-        <dd>{{ $artwork->description ?: '—' }}</dd>
-
-        <dt>Started date</dt>
-        <dd>
-            @if ($artwork->started_date)
-                {{ $artwork->started_date->format('Y-m-d') }}
-                @if ($artwork->started_date_is_estimated) (estimated) @endif
-            @else
-                —
-            @endif
-        </dd>
-
-        <dt>Finished date</dt>
-        <dd>
-            @if ($artwork->finished_date)
-                {{ $artwork->finished_date->format('Y-m-d') }}
-                @if ($artwork->finished_date_is_estimated) (estimated) @endif
-            @else
-                —
-            @endif
-        </dd>
+        <dt>Artwork type</dt>
+        <dd>{{ $artwork->artwork_type ?? '—' }}</dd>
 
         <dt>Medium</dt>
         <dd>{{ $artwork->medium ?? '—' }}</dd>
 
-        <dt>Surface</dt>
-        <dd>{{ $artwork->surface ?? '—' }}</dd>
-
         <dt>Dimensions</dt>
-        <dd>
-            @if ($artwork->width || $artwork->height || $artwork->depth)
-                {{ $artwork->width ?? '?' }} × {{ $artwork->height ?? '?' }} × {{ $artwork->depth ?? '?' }} {{ $artwork->dimension_unit }}
-            @else
-                —
-            @endif
-        </dd>
-
-        <dt>Category</dt>
-        <dd>{{ $artwork->category ?? '—' }}</dd>
-
-        <dt>Style</dt>
-        <dd>{{ $artwork->style ?? '—' }}</dd>
-
-        <dt>Subject</dt>
-        <dd>{{ $artwork->subject ?? '—' }}</dd>
-
-        <dt>Status</dt>
-        <dd>{{ str_replace('_', ' ', $artwork->status) }}</dd>
-
-        <dt>Condition</dt>
-        <dd>{{ str_replace('_', ' ', $artwork->condition) }}</dd>
-
-        <dt>Location</dt>
-        <dd>{{ $artwork->location ?? '—' }}</dd>
-
-        <dt>Storage area</dt>
-        <dd>{{ $artwork->storage_area ?? '—' }}</dd>
-
-        <dt>Estimated value</dt>
-        <dd>
-            @if ($artwork->estimated_value !== null)
-                {{ number_format((float) $artwork->estimated_value, 2) }} {{ $artwork->currency }}
-            @else
-                —
-            @endif
-        </dd>
-
-        <dt>Sale price</dt>
-        <dd>
-            @if ($artwork->sale_price !== null)
-                {{ number_format((float) $artwork->sale_price, 2) }} {{ $artwork->currency }}
-            @else
-                —
-            @endif
-        </dd>
+        <dd>{{ $artwork->formattedDimensions() ?? '—' }}</dd>
 
         <dt>Notes</dt>
         <dd>{{ $artwork->notes ?: '—' }}</dd>

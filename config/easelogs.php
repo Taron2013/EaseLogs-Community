@@ -8,7 +8,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Display names for the hobbyist / self-hosted Community Edition branch.
-    | Internal package keys (e.g. config/artdoc.php) may remain unchanged.
+    | Community Edition uses a reduced artwork field set (see docs when published).
     |
     */
 

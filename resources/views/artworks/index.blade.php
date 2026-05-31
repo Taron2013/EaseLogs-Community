@@ -7,6 +7,13 @@
         <a href="{{ route('artworks.create') }}" class="btn btn-primary">New artwork</a>
     </p>
 
+    @if ($needsUserSetup ?? false)
+        <div class="flash flash-error" style="margin-top:1rem;">
+            No user account exists yet. Run <code>php artisan db:seed</code> to create the default Community account
+            (<code>admin@easelogs.local</code>).
+        </div>
+    @endif
+
     @if ($artworks->isEmpty())
         <p>No artworks yet. <a href="{{ route('artworks.create') }}">Create your first artwork</a>.</p>
     @else
@@ -15,9 +22,11 @@
                 <tr>
                     <th>Photo</th>
                     <th>Title</th>
-                    <th>Inventory code</th>
-                    <th>SKU</th>
-                    <th>Status</th>
+                    <th>Artwork type</th>
+                    <th>Medium</th>
+                    <th>Dimensions</th>
+                    <th>Start date</th>
+                    <th>Completed date</th>
                     <th>Updated</th>
                     <th></th>
                 </tr>
@@ -35,9 +44,11 @@
                             @endif
                         </td>
                         <td><a href="{{ route('artworks.show', $artwork) }}">{{ $artwork->title ?: 'Untitled' }}</a></td>
-                        <td>{{ $artwork->inventory_code }}</td>
-                        <td>{{ $artwork->sku ?? '—' }}</td>
-                        <td>{{ str_replace('_', ' ', $artwork->status) }}</td>
+                        <td>{{ $artwork->artwork_type ?? '—' }}</td>
+                        <td>{{ $artwork->medium ?? '—' }}</td>
+                        <td>{{ $artwork->formattedDimensions() ?? '—' }}</td>
+                        <td>{{ $artwork->start_date?->format('Y-m-d') ?? '—' }}</td>
+                        <td>{{ $artwork->completed_date?->format('Y-m-d') ?? '—' }}</td>
                         <td>{{ $artwork->updated_at?->format('Y-m-d') }}</td>
                         <td>
                             <a href="{{ route('artworks.edit', $artwork) }}">Edit</a>
