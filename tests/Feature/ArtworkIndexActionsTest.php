@@ -57,7 +57,7 @@ class ArtworkIndexActionsTest extends TestCase
         $response->assertDontSee('sort=actions', false);
     }
 
-    public function test_index_table_is_horizontally_scrollable_on_narrow_viewports(): void
+    public function test_index_provides_desktop_table_and_mobile_card_layouts(): void
     {
         $user = $this->signIn();
 
@@ -66,6 +66,7 @@ class ArtworkIndexActionsTest extends TestCase
         $response = $this->get(route('artworks.index'));
 
         $response->assertOk();
-        $response->assertSee('class="artwork-table-wrap"', false);
+        $response->assertSee('artwork-index-table', false);
+        $response->assertSee('artwork-mobile-list', false);
     }
 }

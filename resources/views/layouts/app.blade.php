@@ -21,7 +21,23 @@
         header h1 { margin: 0; font-size: 1.5rem; line-height: 1.2; }
         header .edition { display: block; margin-top: 0.15rem; font-size: 0.75rem; font-weight: 500; color: #666; letter-spacing: 0.02em; }
         header nav { margin-top: 0.5rem; }
-        header nav a { margin-right: 1rem; }
+        .app-nav {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.65rem 1rem;
+        }
+        .app-nav-primary,
+        .app-nav-account {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.85rem;
+        }
+        .app-nav a { margin-right: 0; }
+        .app-nav-logout { display: inline; margin: 0; }
+        .profile-card { max-width: 32rem; }
         .flash { padding: 0.75rem 1rem; margin-bottom: 1rem; border-radius: 4px; }
         .flash-success { background: #e8f5e9; border: 1px solid #a5d6a7; }
         .flash-error { background: #ffebee; border: 1px solid #ef9a9a; }
@@ -42,6 +58,75 @@
         .page-heading { margin-top: 0; margin-bottom: 0.35rem; font-size: 1.5rem; color: #1a1a1a; }
         .page-intro { margin-top: 0; margin-bottom: 1.5rem; color: #555; max-width: 40rem; line-height: 1.6; }
         .artwork-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .artwork-mobile-list { display: none; }
+        .artwork-mobile-list-toolbar {
+            margin-bottom: 0.65rem;
+            padding: 0.5rem 0.65rem;
+            background: #fff;
+            border: 1px solid #ececeb;
+            border-radius: 8px;
+        }
+        .artwork-mobile-select-all {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .artwork-mobile-select-all input[type="checkbox"] { width: auto; max-width: none; }
+        .artwork-mobile-card {
+            background: #fff;
+            border: 1px solid #ececeb;
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .artwork-mobile-card-header {
+            display: grid;
+            grid-template-columns: auto auto 1fr;
+            gap: 0.65rem;
+            align-items: start;
+            margin-bottom: 0.75rem;
+        }
+        .artwork-mobile-card-title {
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.35;
+            align-self: center;
+        }
+        .artwork-mobile-card-title a { text-decoration: none; font-weight: 600; }
+        .artwork-mobile-card-meta {
+            display: grid;
+            gap: 0.45rem 0.75rem;
+            margin: 0 0 0.85rem;
+            font-size: 0.875rem;
+        }
+        .artwork-mobile-card-meta > div {
+            display: grid;
+            grid-template-columns: 7.5rem 1fr;
+            gap: 0.35rem 0.5rem;
+        }
+        .artwork-mobile-card-meta dt {
+            margin: 0;
+            font-weight: 500;
+            color: #555;
+        }
+        .artwork-mobile-card-meta dd { margin: 0; }
+        .artwork-mobile-card-actions .artwork-actions-stack {
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem 0.85rem;
+        }
+        .filter-field {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 0.35rem 0.5rem;
+        }
+        .filter-field label { font-size: 0.8rem; font-weight: 500; color: #555; }
+        .filter-apply-btn { align-self: flex-end; }
         table { width: 100%; border-collapse: collapse; background: #fff; }
         th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid #eee; }
         th { background: #f0f0ee; font-weight: 600; }
@@ -205,6 +290,58 @@
             object-fit: contain;
         }
         .artwork-edit-photo-wrap { margin-bottom: 1.25rem; }
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .app-nav {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .app-nav-primary,
+            .app-nav-account {
+                width: 100%;
+            }
+            .app-nav-account {
+                padding-top: 0.5rem;
+                border-top: 1px solid #e8e8e6;
+            }
+            .app-nav-logout .btn {
+                width: 100%;
+            }
+            .artwork-index-table { display: none; }
+            .artwork-mobile-list { display: block; }
+            .artwork-table-wrap { overflow-x: visible; }
+            .artwork-filters-fields {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-field {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+                width: 100%;
+            }
+            .filter-field select {
+                width: 100%;
+                min-width: 0;
+                max-width: none;
+            }
+            .filter-apply-btn {
+                align-self: stretch;
+                width: 100%;
+                margin-top: 0.25rem;
+            }
+            .bulk-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .bulk-actions .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+        @media (min-width: 769px) {
+            .artwork-mobile-list { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -216,14 +353,19 @@
                     <span class="edition">{{ config('easelogs.edition') }}</span>
                 </a>
             </h1>
-            <nav>
-                <a href="{{ route('artworks.index') }}">Artworks</a>
-                <a href="{{ route('artworks.create') }}">New artwork</a>
-                <a href="{{ route('artworks.import-export') }}">Import / Export</a>
-                <form method="POST" action="{{ route('logout') }}" style="display:inline;margin:0;">
-                    @csrf
-                    <button type="submit" class="btn" style="margin-left:0.5rem;">Sign out</button>
-                </form>
+            <nav class="app-nav" aria-label="Main">
+                <div class="app-nav-primary">
+                    <a href="{{ route('artworks.index') }}">Artworks</a>
+                    <a href="{{ route('artworks.create') }}">New artwork</a>
+                    <a href="{{ route('artworks.import-export') }}">Import / Export</a>
+                </div>
+                <div class="app-nav-account" aria-label="Account">
+                    <a href="{{ route('profile.show') }}">Profile</a>
+                    <form method="POST" action="{{ route('logout') }}" class="app-nav-logout">
+                        @csrf
+                        <button type="submit" class="btn">Sign out</button>
+                    </form>
+                </div>
             </nav>
         </header>
 

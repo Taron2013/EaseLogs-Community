@@ -36,23 +36,27 @@
                 <input type="hidden" name="filter" value="{{ $filters->quickFilter() }}">
             @endif
 
-            <label for="filter_artwork_type">Artwork type</label>
-            <select name="artwork_type" id="filter_artwork_type">
-                <option value="">Any</option>
-                @foreach ($artworkTypes as $type)
-                    <option value="{{ $type }}" @selected($filters->artworkType() === $type)>{{ $type }}</option>
-                @endforeach
-            </select>
+            <div class="filter-field">
+                <label for="filter_artwork_type">Artwork type</label>
+                <select name="artwork_type" id="filter_artwork_type">
+                    <option value="">Any</option>
+                    @foreach ($artworkTypes as $type)
+                        <option value="{{ $type }}" @selected($filters->artworkType() === $type)>{{ $type }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-            <label for="filter_medium">Medium</label>
-            <select name="medium" id="filter_medium">
-                <option value="">Any</option>
-                @foreach ($mediums as $mediumOption)
-                    <option value="{{ $mediumOption }}" @selected($filters->medium() === $mediumOption)>{{ $mediumOption }}</option>
-                @endforeach
-            </select>
+            <div class="filter-field">
+                <label for="filter_medium">Medium</label>
+                <select name="medium" id="filter_medium">
+                    <option value="">Any</option>
+                    @foreach ($mediums as $mediumOption)
+                        <option value="{{ $mediumOption }}" @selected($filters->medium() === $mediumOption)>{{ $mediumOption }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-            <button type="submit" class="btn">Apply</button>
+            <button type="submit" class="btn filter-apply-btn">Apply</button>
         </form>
 
         @if ($filters->hasActiveFilters())
@@ -96,7 +100,19 @@
             <button type="button" class="btn" id="bulk-clear-selection">Clear Selection</button>
         </div>
 
-        <div class="artwork-table-wrap">
+        <div class="artwork-mobile-list">
+            <div class="artwork-mobile-list-toolbar">
+                <label class="artwork-mobile-select-all">
+                    <input type="checkbox" id="artwork-select-all-mobile" aria-label="Select all artworks on this page">
+                    <span>Select all on page</span>
+                </label>
+            </div>
+            @foreach ($artworks as $artwork)
+                @include('artworks._index_mobile_card', ['artwork' => $artwork])
+            @endforeach
+        </div>
+
+        <div class="artwork-table-wrap artwork-index-table">
         <table>
             <thead>
                 <tr>
@@ -155,13 +171,7 @@
                                    aria-label="Select {{ $artwork->displayTitle() }}">
                         </td>
                         <td>
-                            @if ($artwork->latestPhoto?->existsOnDisk())
-                                <a href="{{ route('artworks.show', $artwork) }}">
-                                    <img src="{{ $artwork->latestPhoto->publicUrl() }}" alt="" class="artwork-thumb">
-                                </a>
-                            @else
-                                <span class="artwork-thumb-placeholder">No photo</span>
-                            @endif
+                            @include('artworks._index_artwork_photo', ['artwork' => $artwork])
                         </td>
                         <td><a href="{{ route('artworks.show', $artwork) }}">{{ $artwork->displayTitle() }}</a></td>
                         <td>{{ $artwork->artwork_type ?? '—' }}</td>
@@ -171,18 +181,7 @@
                         <td>{{ $artwork->completed_date?->format('Y-m-d') ?? '—' }}</td>
                         <td>{{ $artwork->updated_at?->format('Y-m-d') }}</td>
                         <td class="artwork-actions">
-                            <div class="artwork-actions-stack">
-                                <a href="{{ route('artworks.show', $artwork) }}" class="artwork-action-link">View</a>
-                                <a href="{{ route('artworks.edit', $artwork) }}" class="artwork-action-link">Edit</a>
-                                <form method="POST"
-                                      action="{{ route('artworks.destroy', $artwork) }}"
-                                      class="artwork-action-delete-form"
-                                      onsubmit="return confirm('Delete this artwork? This cannot be undone.');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="artwork-action-delete">Delete</button>
-                                </form>
-                            </div>
+                            @include('artworks._index_artwork_actions', ['artwork' => $artwork])
                         </td>
                     </tr>
                 @endforeach
@@ -196,50 +195,68 @@
 
         <script>
             (function () {
-                const selectAll = document.getElementById('artwork-select-all');
-                const rowChecks = document.querySelectorAll('.artwork-row-select');
+                const selectAllDesktop = document.getElementById('artwork-select-all');
+                const selectAllMobile = document.getElementById('artwork-select-all-mobile');
                 const bulkBar = document.getElementById('bulk-actions');
                 const bulkCount = document.getElementById('bulk-selected-count');
                 const bulkForm = document.getElementById('bulk-delete-form');
                 const clearBtn = document.getElementById('bulk-clear-selection');
 
+                function visibleRowChecks() {
+                    return Array.from(document.querySelectorAll('.artwork-row-select')).filter(function (checkbox) {
+                        return checkbox.offsetParent !== null;
+                    });
+                }
+
                 function selectedCount() {
-                    return document.querySelectorAll('.artwork-row-select:checked').length;
+                    return visibleRowChecks().filter(function (checkbox) {
+                        return checkbox.checked;
+                    }).length;
+                }
+
+                function syncSelectAllControls() {
+                    const checks = visibleRowChecks();
+                    const count = selectedCount();
+                    const allSelected = checks.length > 0 && count === checks.length;
+
+                    [selectAllDesktop, selectAllMobile].forEach(function (control) {
+                        if (!control) {
+                            return;
+                        }
+
+                        control.checked = allSelected;
+                        control.indeterminate = count > 0 && !allSelected;
+                    });
                 }
 
                 function updateBulkBar() {
                     const count = selectedCount();
                     bulkBar.hidden = count === 0;
                     bulkCount.textContent = String(count);
-
-                    if (!selectAll) {
-                        return;
-                    }
-
-                    selectAll.checked = count > 0 && count === rowChecks.length;
-                    selectAll.indeterminate = count > 0 && count < rowChecks.length;
+                    syncSelectAllControls();
                 }
 
-                selectAll?.addEventListener('change', function () {
-                    rowChecks.forEach(function (checkbox) {
-                        checkbox.checked = selectAll.checked;
+                function setSelectAll(checked) {
+                    visibleRowChecks().forEach(function (checkbox) {
+                        checkbox.checked = checked;
                     });
                     updateBulkBar();
+                }
+
+                selectAllDesktop?.addEventListener('change', function () {
+                    setSelectAll(selectAllDesktop.checked);
                 });
 
-                rowChecks.forEach(function (checkbox) {
+                selectAllMobile?.addEventListener('change', function () {
+                    setSelectAll(selectAllMobile.checked);
+                });
+
+                document.querySelectorAll('.artwork-row-select').forEach(function (checkbox) {
                     checkbox.addEventListener('change', updateBulkBar);
                 });
 
                 clearBtn?.addEventListener('click', function () {
-                    rowChecks.forEach(function (checkbox) {
-                        checkbox.checked = false;
-                    });
-                    if (selectAll) {
-                        selectAll.checked = false;
-                        selectAll.indeterminate = false;
-                    }
-                    updateBulkBar();
+                    setSelectAll(false);
                 });
 
                 bulkForm?.addEventListener('submit', function (event) {

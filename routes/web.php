@@ -3,6 +3,7 @@
 use App\Http\Controllers\ArtworkController;
 use App\Http\Controllers\ArtworkCsvController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SetupController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,12 @@ Route::middleware(['setup.complete', 'guest'])->group(function (): void {
 
 Route::middleware(['setup.complete', 'auth'])->group(function (): void {
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::get('profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('profile/password', [ProfileController::class, 'editPassword'])->name('profile.password.edit');
+    Route::patch('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 
     Route::get('artworks/import-export', [ArtworkCsvController::class, 'importExport'])->name('artworks.import-export');
     Route::get('artworks/export/csv', [ArtworkCsvController::class, 'export'])->name('artworks.export.csv');
