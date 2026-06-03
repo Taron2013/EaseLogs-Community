@@ -7,6 +7,8 @@ Two **independent** local nginx/php-fpm deployments on one workstation:
 | Community | `easelogs.local` | `/var/www/projects/easelogs` | `scripts/redeploy-local.sh` |
 | Pro | `easelogs.pro` | `/var/www/projects/easelog-pro` | `scripts/redeploy-pro-local.sh` |
 
+Back up Community and Pro data before reset or `migrate:fresh`: [COMMUNITY_BACKUP.md](COMMUNITY_BACKUP.md).
+
 Each install has its own:
 
 - `.env`

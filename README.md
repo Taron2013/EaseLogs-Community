@@ -2,7 +2,7 @@
 
 EaseLogs is a local-first artwork inventory and lifecycle management application for artists. It helps you catalog physical artwork, track creation and completion workflow, manage metadata, import and export CSV records, and attach photos.
 
-EaseLogs is built with [Laravel](https://laravel.com) and SQLite. It is designed for self-hosted, offline-capable use with a simple backup model (copy the SQLite database and uploaded files).
+EaseLogs is built with [Laravel](https://laravel.com) and SQLite. It is designed for self-hosted, offline-capable use with a simple backup model (copy the SQLite database and uploaded files). See [docs/COMMUNITY_BACKUP.md](docs/COMMUNITY_BACKUP.md).
 
 EaseLogs was formerly developed under the working name ArtDoc.
 
@@ -12,10 +12,16 @@ EaseLogs Community Edition supports:
 
 - Artwork inventory with title, dates, type, medium, dimensions, and notes
 - Optional titles and backfill-friendly unnamed-work workflows
-- Creation and completion dates with in-progress-first artwork listing
-- Artwork photos stored on your own server
+- Creation and completion dates; artwork index defaults to **most recently updated first**
+- Quick filters (in progress, completed, untitled, missing photo/dimensions) plus search and sort
+- Bulk delete on the artwork index
+- First-run owner setup (`/setup`), sign-in (`/login`), profile and password change
+- Artwork photos stored on your own server (run `php artisan storage:link` once per install)
 - Metadata-only CSV import and export for spreadsheet workflows
+- Responsive layout: desktop table and mobile card list with mobile sort controls
 - Local SQLite storage for lightweight, artist-focused deployment
+
+Full Community guide: [docs/COMMUNITY_EDITION.md](docs/COMMUNITY_EDITION.md). Pro-reserved database tables: [docs/SCHEMA_RESERVED_FOR_PRO.md](docs/SCHEMA_RESERVED_FOR_PRO.md).
 
 ## Local development setup
 
@@ -130,7 +136,7 @@ Full nginx, hosts, TLS, and verification steps: [docs/LOCAL_INTRANET_DEPLOYMENT.
 | 8 | Complete | Artwork index sorting, filtering, and search |
 | 9 | Planned | Dashboard improvements |
 | 10 | Planned | Authentication and security expansion |
-| 11 | Planned | Production readiness, deployment, documentation |
+| 11 | Partial | Local intranet deployment documented; public cloud hosting guide planned |
 
 ## Licensing
 

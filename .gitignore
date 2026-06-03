@@ -18,6 +18,9 @@ Thumbs.db
 /.vscode
 /.zed
 
+# Local TLS certificates (mkcert, etc.) — never commit
+*.pem
+
 # Environment
 .env
 .env.*

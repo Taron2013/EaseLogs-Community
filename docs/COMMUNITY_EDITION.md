@@ -131,13 +131,24 @@ Community Edition is intended for trusted private networks only.
 
 Do not expose directly to the public internet.
 
-### Internal Seeded User
+### Single owner account
 
-During installation, EaseLogs creates an internal system user.
+Community Edition is **single-user**: one owner account per install. There is no public registration page.
 
-This user enables artwork creation.
+- **First visit (no users):** you are redirected to **first-run setup** at `/setup` to create name, email, and password.
+- **After setup:** sign in at `/login`. Use **Remember me** to stay signed in on trusted devices.
+- **Profile:** update name and email from **Profile** in the navigation.
+- **Password:** change password from Profile → **Change password** (current password required).
 
-Community Edition does not currently provide a login screen.
+No default password is shipped. `php artisan db:seed` is optional and does not create your owner account.
+
+### Backup your data
+
+Copy `database/database.sqlite` and `storage/app/public/` regularly. Full steps: [COMMUNITY_BACKUP.md](COMMUNITY_BACKUP.md).
+
+### Pro-reserved database tables
+
+Some migrations create tables and columns used only in Pro or future releases. Community does not show them in the UI. See [SCHEMA_RESERVED_FOR_PRO.md](SCHEMA_RESERVED_FOR_PRO.md).
 
 ---
 
@@ -205,6 +216,12 @@ php artisan migrate
 npm run build
 ```
 
+### Step 6b: Public storage link (required for photos)
+
+```powershell
+php artisan storage:link
+```
+
 ### Step 7: Start EaseLogs
 
 ```powershell
@@ -213,23 +230,25 @@ php artisan serve --host=0.0.0.0 --port=8000
 
 ### Step 8: Open EaseLogs
 
-On the same computer:
+On the same computer, open the site root (you will be sent to `/setup` on first visit):
 
 ```text
-http://127.0.0.1:8000/artworks
+http://127.0.0.1:8000/
 ```
 
 From another device:
 
 ```text
-http://YOUR-PC-IP:8000/artworks
+http://YOUR-PC-IP:8000/
 ```
 
 Example:
 
 ```text
-http://192.168.1.50:8000/artworks
+http://192.168.1.50:8000/
 ```
+
+Complete **first-run setup**, then sign in at `/login` when prompted.
 
 ### Windows Firewall
 
@@ -311,6 +330,12 @@ php artisan migrate
 npm run build
 ```
 
+### Step 8b: Public storage link (required for photos)
+
+```bash
+php artisan storage:link
+```
+
 ### Step 9: Permissions
 
 ```bash
@@ -325,16 +350,16 @@ php artisan serve --host=0.0.0.0 --port=8000
 
 ### Step 11: Open EaseLogs
 
-Local:
+Local (first visit redirects to `/setup`):
 
 ```text
-http://localhost:8000/artworks
+http://localhost:8000/
 ```
 
 LAN:
 
 ```text
-http://YOUR-LAN-IP:8000/artworks
+http://YOUR-LAN-IP:8000/
 ```
 
 ### Linux Firewall
@@ -378,11 +403,76 @@ Example:
 192.168.1.50
 ```
 
-Open on mobile:
+Open on mobile (same as desktop; layout adapts to small screens):
 
 ```text
-http://192.168.1.50:8000/artworks
+http://192.168.1.50:8000/
 ```
+
+---
+
+## Artwork index: search, filters, and sort
+
+The artwork list (`/artworks`) helps you find and organize work on desktop and mobile.
+
+### Default sort
+
+With no sort selected, artworks are ordered by **most recently updated first** (`updated_at` descending). The **Recently updated** quick control returns to this default.
+
+### Search
+
+Use **Search** to match **title** or **notes**. Click **Apply** to run the search (or press Enter in the search field).
+
+### Quick filters
+
+Pill links filter the list, for example:
+
+- All artworks
+- In progress / completed
+- Untitled
+- Missing photo / missing dimensions
+
+Quick filters apply immediately (they are links). Type, medium, and search use the filter form **Apply** button.
+
+### Sort (desktop and mobile)
+
+- **Desktop:** click column headers (title, dates, type, medium, dimensions, updated).
+- **Mobile:** use the **Sort** section (dropdown + **Apply**). The desktop table is hidden; artworks appear as cards.
+
+### Clear vs reset
+
+- **Clear filters** — removes quick/type/medium filters but keeps search text and sort.
+- **Reset view** — clears filters, search, and sort back to the default listing.
+
+Pagination keeps your current search, filters, and sort when you change pages.
+
+### Bulk delete
+
+Select artworks with the checkboxes, then use **Delete selected** (confirmation required). Use with care; deleted rows are removed from the database (photos on disk may remain until cleaned up manually).
+
+---
+
+## Mobile support
+
+Community Edition is usable on phones and tablets on your home network:
+
+- Sign in, profile, and password pages use a simple single-column layout.
+- The artwork index shows **cards** instead of a wide table on narrow screens.
+- Filters, sort, and bulk actions stack vertically for touch use.
+
+Use `php artisan serve --host=0.0.0.0` and open your computer’s LAN IP from mobile devices (see firewall steps above).
+
+---
+
+## Deployment (advanced)
+
+For day-to-day use, `php artisan serve` is enough. For a persistent copy on Linux with nginx (optional):
+
+- Community intranet example: `https://easelogs.local` at `/var/www/projects/easelogs`
+- Documented in [README.md](../README.md) and [LOCAL_INTRANET_DEPLOYMENT.md](LOCAL_INTRANET_DEPLOYMENT.md)
+- Redeploy without losing data: `./scripts/redeploy-local.sh --preserve`
+
+Pro is a separate product path (`easelogs.pro`, `/var/www/projects/easelog-pro`) and is not part of Community Edition packaging.
 
 ---
 
@@ -408,7 +498,17 @@ php artisan serve --host=0.0.0.0 --port=8000
 php artisan serve --host=0.0.0.0 --port=8080
 ```
 
-Then open `http://YOUR-IP:8080/artworks`.
+Then open `http://YOUR-IP:8080/`.
+
+### Photos upload but do not display
+
+Run once per install:
+
+```bash
+php artisan storage:link
+```
+
+Confirm `public/storage` is a symlink to `storage/app/public`.
 
 ### Permission Errors (Linux)
 
@@ -418,11 +518,19 @@ chmod -R ug+rw storage bootstrap/cache
 
 ### Database Problems
 
+Prefer non-destructive fixes first:
+
 ```bash
-php artisan migrate:fresh --seed
+php artisan migrate
 ```
 
-**Warning:** deletes all stored artwork data.
+**Warning — destroys all artwork and user data:**
+
+```bash
+php artisan migrate:fresh
+```
+
+Back up first: [COMMUNITY_BACKUP.md](COMMUNITY_BACKUP.md). After `migrate:fresh`, complete `/setup` again. Community seeders do not restore your inventory.
 
 ---
 
@@ -445,6 +553,14 @@ Preserve:
 
 * `database/database.sqlite`
 * `storage/app/public`
+
+See [COMMUNITY_BACKUP.md](COMMUNITY_BACKUP.md) for backup, restore, symlink, and permissions checks.
+
+On Manjaro intranet deploys, code updates without wiping data:
+
+```bash
+./scripts/redeploy-local.sh --preserve
+```
 
 ---
 
@@ -483,23 +599,28 @@ Add photos separately from the artwork create or edit screens after import.
 
 ## Community Edition Includes
 
-* Artwork inventory
-* Photo uploads
-* Thumbnail gallery
-* Artwork detail pages
+* Artwork inventory (create, edit, delete, completion workflow)
+* First-run setup (`/setup`) and sign-in (`/login`) with remember me
+* Profile editing and password change
+* Photo uploads (single primary photo per artwork in the UI)
+* Thumbnail gallery and artwork detail pages
+* Artwork index search, filters, sort (default: recently updated), and bulk delete
+* Mobile-friendly index cards and mobile sort controls
 * CSV metadata import and export (no photos in CSV)
-* Single-user local deployment
-* Private self-hosting
+* Single-owner local deployment and private self-hosting
+* Documented backup paths (SQLite + `storage/app/public/`)
 
 ---
 
 ## Community Edition Does Not Include
 
-* Cloud hosting
-* Multi-user accounts
-* Collaboration tools
-* Subscription services
-* Enterprise deployment features
+* Cloud hosting or SaaS
+* Multi-user accounts, roles, or collaboration
+* OAuth / social login (see [AUTH_EXTENSIONS.md](AUTH_EXTENSIONS.md) for future direction)
+* Forgot-password email flow (offline single-owner installs)
+* Pro tables in the UI: events, tags, `app_settings` (see [SCHEMA_RESERVED_FOR_PRO.md](SCHEMA_RESERVED_FOR_PRO.md))
+* SKU, valuation, inventory codes, and other commercial fields in forms or CSV
+* Subscription services or enterprise deployment features
 
 ---
 

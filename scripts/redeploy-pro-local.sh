@@ -26,7 +26,7 @@ done
 
 readonly PROD="/var/www/projects/easelog-pro"
 readonly COMMUNITY_PROD="/var/www/projects/easelogs"
-readonly DEPLOY_USER="${SUDO_USER:-${USER:-artistdoug}}"
+readonly DEPLOY_USER="${SUDO_USER:-${USER}}"
 readonly DEPLOY_GROUP="http"
 readonly DEPLOY_URL="https://easelogs.pro"
 readonly COMMUNITY_URL="https://easelogs.local"
