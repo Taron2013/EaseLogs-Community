@@ -12,7 +12,7 @@
         Metadata only. Photos are not included in CSV import or export. Include any subset of approved columns
         (title, start_date, completed_date, artwork_type, medium, height, width, depth, dimension_unit, notes).
         Extra columns are ignored. Dates accept common formats (YYYY-MM-DD, MM/DD/YYYY, written dates, ISO date-times); export uses YYYY-MM-DD.
-        Pro or legacy fields (inventory, photos, and similar) are rejected.
+        Unsupported fields (inventory, photos, and similar) are rejected.
     </p>
     <form method="POST" action="{{ route('artworks.import.csv') }}" enctype="multipart/form-data" class="field-inline" style="align-items:flex-end;flex-wrap:wrap;gap:0.75rem;">
         @csrf

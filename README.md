@@ -21,7 +21,9 @@ EaseLogs Community Edition supports:
 - Responsive layout: desktop table and mobile card list with mobile sort controls
 - Local SQLite storage for lightweight, artist-focused deployment
 
-Full Community guide: [docs/COMMUNITY_EDITION.md](docs/COMMUNITY_EDITION.md). Pro-reserved database tables: [docs/SCHEMA_RESERVED_FOR_PRO.md](docs/SCHEMA_RESERVED_FOR_PRO.md).
+**Installation (Community Edition):** [docs/INSTALL_GUIDE.md](docs/INSTALL_GUIDE.md) — step-by-step setup for artists and self-hosters.
+
+Additional documentation: [docs/COMMUNITY_EDITION.md](docs/COMMUNITY_EDITION.md) (platform details), [docs/COMMUNITY_BACKUP.md](docs/COMMUNITY_BACKUP.md) (backup/restore), [docs/DATABASE_INTERNAL_SCHEMA.md](docs/DATABASE_INTERNAL_SCHEMA.md) (internal schema notes).
 
 ## Local development setup
 
@@ -50,7 +52,7 @@ npm run build
 php artisan serve
 ```
 
-Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) and complete first-run setup at `/setup` to create your owner account.
+Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) and complete first-run setup at `/setup` to create your owner account. For the full walkthrough (storage link, workflow, troubleshooting), see [docs/INSTALL_GUIDE.md](docs/INSTALL_GUIDE.md).
 
 ### Tests
 
@@ -102,25 +104,13 @@ The redeploy script always verifies `public/storage` → `storage/app/public`. A
 
 After a database reset, open the app in your browser and complete **first-run setup** at `/setup` to create the owner account. No default password is created by seeders.
 
-### Local intranet — Pro (`easelogs.pro`)
-
-A **separate** Pro deploy runs alongside Community on the same machine:
-
-| | Community | Pro |
-|---|-----------|-----|
-| Hostname | `easelogs.local` | `easelogs.pro` |
-| Path | `/var/www/projects/easelogs` | `/var/www/projects/easelog-pro` |
-| Script | `scripts/redeploy-local.sh` | `scripts/redeploy-pro-local.sh` |
-
-Pro has its own SQLite database and `storage/app/public/`. First-time setup can optionally copy Community data once; after that they stay independent.
+Optional verification after deploy:
 
 ```bash
-chmod +x scripts/redeploy-pro-local.sh scripts/verify-local-deployments.sh
-./scripts/redeploy-pro-local.sh
-./scripts/redeploy-pro-local.sh --preserve   # keep Pro SQLite + uploads
+./scripts/verify-local-deployments.sh
 ```
 
-Full nginx, hosts, TLS, and verification steps: [docs/LOCAL_INTRANET_DEPLOYMENT.md](docs/LOCAL_INTRANET_DEPLOYMENT.md).
+Full nginx, hosts, and TLS notes: [docs/LOCAL_INTRANET_DEPLOYMENT.md](docs/LOCAL_INTRANET_DEPLOYMENT.md).
 
 ## Development roadmap
 

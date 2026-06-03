@@ -2,6 +2,8 @@
 
 Private self-hosted artwork inventory for artists.
 
+**New install?** Start with the [Installation Guide](INSTALL_GUIDE.md), then return here for Windows/Linux specifics, LAN access, and extended troubleshooting.
+
 EaseLogs Community Edition allows artists to run a private artwork inventory website on their own computer and access it from devices on their home network.
 
 Examples:
@@ -146,9 +148,9 @@ No default password is shipped. `php artisan db:seed` is optional and does not c
 
 Copy `database/database.sqlite` and `storage/app/public/` regularly. Full steps: [COMMUNITY_BACKUP.md](COMMUNITY_BACKUP.md).
 
-### Pro-reserved database tables
+### Internal database tables
 
-Some migrations create tables and columns used only in Pro or future releases. Community does not show them in the UI. See [SCHEMA_RESERVED_FOR_PRO.md](SCHEMA_RESERVED_FOR_PRO.md).
+Some migrations create tables and columns not used in the Community UI. See [DATABASE_INTERNAL_SCHEMA.md](DATABASE_INTERNAL_SCHEMA.md).
 
 ---
 
@@ -472,7 +474,6 @@ For day-to-day use, `php artisan serve` is enough. For a persistent copy on Linu
 - Documented in [README.md](../README.md) and [LOCAL_INTRANET_DEPLOYMENT.md](LOCAL_INTRANET_DEPLOYMENT.md)
 - Redeploy without losing data: `./scripts/redeploy-local.sh --preserve`
 
-Pro is a separate product path (`easelogs.pro`, `/var/www/projects/easelog-pro`) and is not part of Community Edition packaging.
 
 ---
 
@@ -591,7 +592,7 @@ The export uses the column order above. Empty fields are left blank.
 3. Dates must use `YYYY-MM-DD` format (for example `2026-05-28`).
 4. Imported rows are added as **new** artworks for your local single-owner account.
 
-If the file has disallowed Pro/legacy columns, invalid dates, or other errors, nothing is imported and an error message explains what to fix.
+If the file has disallowed or unsupported columns, invalid dates, or other errors, nothing is imported and an error message explains what to fix.
 
 Add photos separately from the artwork create or edit screens after import.
 
@@ -618,8 +619,8 @@ Add photos separately from the artwork create or edit screens after import.
 * Multi-user accounts, roles, or collaboration
 * OAuth / social login (see [AUTH_EXTENSIONS.md](AUTH_EXTENSIONS.md) for future direction)
 * Forgot-password email flow (offline single-owner installs)
-* Pro tables in the UI: events, tags, `app_settings` (see [SCHEMA_RESERVED_FOR_PRO.md](SCHEMA_RESERVED_FOR_PRO.md))
-* SKU, valuation, inventory codes, and other commercial fields in forms or CSV
+* Internal tables in the UI: events, tags, `app_settings` (see [DATABASE_INTERNAL_SCHEMA.md](DATABASE_INTERNAL_SCHEMA.md))
+* SKU, valuation, inventory codes, and other extended commercial fields in forms or CSV
 * Subscription services or enterprise deployment features
 
 ---
