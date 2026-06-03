@@ -11,39 +11,73 @@ class ArtworkIndexSortTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_default_listing_shows_incomplete_first_then_completed_newest_first(): void
+    public function test_default_listing_orders_by_updated_at_descending(): void
     {
         $user = $this->signIn();
 
-        Artwork::factory()->for($user)->create([
-            'title' => 'Old Completed',
+        $oldest = Artwork::factory()->for($user)->create([
+            'title' => 'Oldest Touch',
             'completed_date' => '2025-12-01',
         ]);
+        $oldest->forceFill(['updated_at' => now()->subDays(30)])->save();
 
-        Artwork::factory()->for($user)->create([
-            'title' => 'In Progress B',
+        $newest = Artwork::factory()->for($user)->create([
+            'title' => 'Newest Touch',
             'completed_date' => null,
         ]);
+        $newest->forceFill(['updated_at' => now()->subHours(1)])->save();
 
-        Artwork::factory()->for($user)->create([
-            'title' => 'Recent Completed',
+        $middle = Artwork::factory()->for($user)->create([
+            'title' => 'Middle Touch',
             'completed_date' => '2026-06-15',
         ]);
-
-        Artwork::factory()->for($user)->create([
-            'title' => 'In Progress A',
-            'completed_date' => null,
-        ]);
+        $middle->forceFill(['updated_at' => now()->subDays(3)])->save();
 
         $response = $this->get(route('artworks.index'));
 
         $response->assertOk();
         $response->assertSeeInOrder([
-            'In Progress B',
-            'In Progress A',
-            'Recent Completed',
-            'Old Completed',
+            'Newest Touch',
+            'Middle Touch',
+            'Oldest Touch',
         ], false);
+    }
+
+    public function test_recently_updated_link_uses_default_listing_without_sort_params(): void
+    {
+        $user = $this->signIn();
+
+        Artwork::factory()->for($user)->create(['title' => 'Sorted Work']);
+
+        $this->get(route('artworks.index', ['sort' => 'title', 'direction' => 'asc']))
+            ->assertOk()
+            ->assertSee('class="filter-pill">Recently updated', false)
+            ->assertDontSee('class="filter-pill is-active">Recently updated', false);
+
+        $this->get(route('artworks.index'))
+            ->assertOk()
+            ->assertSee('class="filter-pill is-active">Recently updated', false);
+    }
+
+    public function test_reset_view_link_clears_filters_sort_and_search(): void
+    {
+        $user = $this->signIn();
+
+        Artwork::factory()->for($user)->create(['title' => 'Reset Me', 'completed_date' => null]);
+
+        $this->get(route('artworks.index', [
+            'filter' => 'in_progress',
+            'sort' => 'title',
+            'direction' => 'asc',
+            'q' => 'Reset',
+        ]))
+            ->assertOk()
+            ->assertSee('Reset view', false)
+            ->assertSee(route('artworks.index'), false);
+
+        $this->get(route('artworks.index'))
+            ->assertOk()
+            ->assertDontSee('Reset view', false);
     }
 
     public function test_completed_date_descending_puts_incomplete_first_then_newest_completed(): void
@@ -238,20 +272,22 @@ class ArtworkIndexSortTest extends TestCase
     {
         $user = $this->signIn();
 
-        Artwork::factory()->for($user)->create([
-            'title' => 'Completed Fallback',
+        $older = Artwork::factory()->for($user)->create([
+            'title' => 'Older Fallback',
             'completed_date' => '2026-01-01',
         ]);
+        $older->forceFill(['updated_at' => now()->subDays(5)])->save();
 
-        Artwork::factory()->for($user)->create([
-            'title' => 'Incomplete Fallback',
+        $newer = Artwork::factory()->for($user)->create([
+            'title' => 'Newer Fallback',
             'completed_date' => null,
         ]);
+        $newer->forceFill(['updated_at' => now()->subHours(1)])->save();
 
         $response = $this->get(route('artworks.index', ['sort' => 'photo', 'direction' => 'asc']));
 
         $response->assertOk();
-        $response->assertSeeInOrder(['Incomplete Fallback', 'Completed Fallback'], false);
+        $response->assertSeeInOrder(['Newer Fallback', 'Older Fallback'], false);
         $response->assertDontSee('sort=photo', false);
     }
 

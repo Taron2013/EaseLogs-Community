@@ -26,6 +26,18 @@
         .field { margin-bottom: 1rem; }
         .field label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.875rem; }
         .field input { width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #ccc; border-radius: 4px; font: inherit; }
+        .field-inline { display: flex; align-items: center; gap: 0.4rem; }
+        .field-inline input[type="checkbox"],
+        .field-inline input[type="radio"] {
+            width: auto;
+            max-width: none;
+            flex-shrink: 0;
+        }
+        .field-inline label {
+            display: inline;
+            margin: 0;
+            font-weight: 400;
+        }
         .field-hint { font-size: 0.8rem; color: #666; margin-top: 0.2rem; }
         .btn {
             display: inline-block;

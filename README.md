@@ -70,7 +70,8 @@ For testing deploys to the nginx/php-fpm copy at `https://easelogs.local` (`/var
 
 ```bash
 chmod +x scripts/redeploy-local.sh
-./scripts/redeploy-local.sh
+./scripts/redeploy-local.sh              # interactive
+./scripts/redeploy-local.sh --preserve   # keep SQLite + uploads
 ```
 
 **LOCAL `easelogs.local` only** — not for remote production. The script will evolve over time.
@@ -95,6 +96,26 @@ The redeploy script always verifies `public/storage` → `storage/app/public`. A
 
 After a database reset, open the app in your browser and complete **first-run setup** at `/setup` to create the owner account. No default password is created by seeders.
 
+### Local intranet — Pro (`easelogs.pro`)
+
+A **separate** Pro deploy runs alongside Community on the same machine:
+
+| | Community | Pro |
+|---|-----------|-----|
+| Hostname | `easelogs.local` | `easelogs.pro` |
+| Path | `/var/www/projects/easelogs` | `/var/www/projects/easelog-pro` |
+| Script | `scripts/redeploy-local.sh` | `scripts/redeploy-pro-local.sh` |
+
+Pro has its own SQLite database and `storage/app/public/`. First-time setup can optionally copy Community data once; after that they stay independent.
+
+```bash
+chmod +x scripts/redeploy-pro-local.sh scripts/verify-local-deployments.sh
+./scripts/redeploy-pro-local.sh
+./scripts/redeploy-pro-local.sh --preserve   # keep Pro SQLite + uploads
+```
+
+Full nginx, hosts, TLS, and verification steps: [docs/LOCAL_INTRANET_DEPLOYMENT.md](docs/LOCAL_INTRANET_DEPLOYMENT.md).
+
 ## Development roadmap
 
 | Phase | Status | Description |
@@ -106,11 +127,10 @@ After a database reset, open the app in your browser and complete **first-run se
 | 5 | Complete | Artwork CRUD and metadata UX |
 | 6 | Complete | Artwork photo uploads |
 | 7 | Complete | CSV metadata import and export |
-| 8 | Complete | Artwork index sorting |
-| 9 | Planned | Search and filtering |
-| 10 | Planned | Dashboard improvements |
-| 11 | Planned | Authentication and security expansion |
-| 12 | Planned | Production readiness, deployment, documentation |
+| 8 | Complete | Artwork index sorting, filtering, and search |
+| 9 | Planned | Dashboard improvements |
+| 10 | Planned | Authentication and security expansion |
+| 11 | Planned | Production readiness, deployment, documentation |
 
 ## Licensing
 

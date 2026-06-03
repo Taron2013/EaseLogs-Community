@@ -156,7 +156,7 @@ class ArtworkIndexFilterTest extends TestCase
 
         $this->get(route('artworks.index', ['medium' => 'Not In Catalog']))
             ->assertOk()
-            ->assertSee('No artworks match these filters', false)
+            ->assertSee('No artworks match this view', false)
             ->assertDontSee('Existing Work', false);
     }
 
@@ -236,15 +236,17 @@ class ArtworkIndexFilterTest extends TestCase
     {
         $user = $this->signIn();
 
-        Artwork::factory()->for($user)->create([
+        $older = Artwork::factory()->for($user)->create([
             'title' => 'Older Incomplete',
             'completed_date' => null,
         ]);
+        $older->forceFill(['updated_at' => now()->subDays(10)])->save();
 
-        Artwork::factory()->for($user)->create([
+        $newer = Artwork::factory()->for($user)->create([
             'title' => 'Newer Incomplete',
             'completed_date' => null,
         ]);
+        $newer->forceFill(['updated_at' => now()->subHours(2)])->save();
 
         Artwork::factory()->for($user)->create([
             'title' => 'Recent Completed',
@@ -253,8 +255,63 @@ class ArtworkIndexFilterTest extends TestCase
 
         $this->get(route('artworks.index', ['filter' => 'in_progress']))
             ->assertOk()
-            ->assertSeeInOrder(['Older Incomplete', 'Newer Incomplete'], false)
+            ->assertSeeInOrder(['Newer Incomplete', 'Older Incomplete'], false)
             ->assertDontSee('Recent Completed', false);
+    }
+
+    public function test_clear_filters_preserves_search_and_sort(): void
+    {
+        $user = $this->signIn();
+
+        Artwork::factory()->for($user)->create(['title' => 'Find Me', 'completed_date' => null]);
+
+        $this->get(route('artworks.index', [
+            'filter' => 'in_progress',
+            'q' => 'Find',
+            'sort' => 'title',
+            'direction' => 'asc',
+        ]))
+            ->assertOk()
+            ->assertSee('Clear filters', false);
+
+        $clearUrl = route('artworks.index', [
+            'q' => 'Find',
+            'sort' => 'title',
+            'direction' => 'asc',
+        ]);
+
+        $this->get($clearUrl)
+            ->assertOk()
+            ->assertSee('Find Me', false)
+            ->assertSee('q=Find', false)
+            ->assertSee('sort=title', false);
+    }
+
+    public function test_pagination_preserves_filter_search_and_sort(): void
+    {
+        $user = $this->signIn();
+
+        Artwork::factory()->count(21)->for($user)->sequence(
+            fn ($sequence) => [
+                'title' => 'Searchable '.$sequence->index,
+                'completed_date' => null,
+                'notes' => 'batch notes',
+            ],
+        )->create();
+
+        $page1 = $this->get(route('artworks.index', [
+            'filter' => 'in_progress',
+            'q' => 'Searchable',
+            'sort' => 'title',
+            'direction' => 'asc',
+        ]));
+
+        $page1->assertOk();
+        $page1->assertSee('filter=in_progress', false);
+        $page1->assertSee('q=Searchable', false);
+        $page1->assertSee('sort=title', false);
+        $page1->assertSee('direction=asc', false);
+        $page1->assertSee('page=2', false);
     }
 
     public function test_filter_class_normalizes_invalid_quick_filter_to_all(): void

@@ -47,4 +47,18 @@ class ArtworkIndexMobileTest extends TestCase
         $response->assertSee('artwork-row-select', false);
         $response->assertSee('bulk-delete-form', false);
     }
+
+    public function test_index_includes_mobile_sort_controls(): void
+    {
+        $user = $this->signIn();
+
+        Artwork::factory()->for($user)->create(['title' => 'Sortable Mobile Work']);
+
+        $this->get(route('artworks.index'))
+            ->assertOk()
+            ->assertSee('artwork-sort-fields-mobile', false)
+            ->assertSee('mobile_sort_column', false)
+            ->assertSee('mobile_sort_direction', false)
+            ->assertSee('Apply sort', false);
+    }
 }

@@ -30,9 +30,9 @@
                 <input type="password" name="password" id="password" required autocomplete="current-password">
             </div>
 
-            <div class="field field-inline" style="display:flex;align-items:center;gap:0.5rem;">
+            <div class="field field-inline">
                 <input type="checkbox" name="remember" id="remember" value="1" @checked(old('remember'))>
-                <label for="remember" style="margin:0;font-weight:400;">Remember me</label>
+                <label for="remember">Remember me</label>
             </div>
 
             <button type="submit" class="btn">Sign in</button>

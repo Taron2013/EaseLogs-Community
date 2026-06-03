@@ -7,6 +7,7 @@ use App\Http\Requests\ArtworkRequest;
 use App\Models\Artwork;
 use App\Models\User;
 use App\Support\ArtworkIndexFilters;
+use App\Support\ArtworkIndexSearch;
 use App\Support\ArtworkIndexSort;
 use App\Services\ArtworkPhotoService;
 use Illuminate\Http\RedirectResponse;
@@ -22,11 +23,13 @@ class ArtworkController extends Controller
     public function index(Request $request): View
     {
         $filters = ArtworkIndexFilters::fromRequest($request);
+        $search = ArtworkIndexSearch::fromRequest($request);
         $sort = ArtworkIndexSort::fromRequest($request);
 
         $artworks = Artwork::query()
             ->with('latestPhoto')
             ->tap(fn ($query) => $filters->apply($query))
+            ->tap(fn ($query) => $search->apply($query))
             ->tap(fn ($query) => $sort->apply($query))
             ->paginate(20)
             ->withQueryString();
@@ -34,6 +37,7 @@ class ArtworkController extends Controller
         return view('artworks.index', [
             'artworks' => $artworks,
             'filters' => $filters,
+            'search' => $search,
             'sort' => $sort,
             'artworkTypes' => Artwork::query()
                 ->whereNotNull('artwork_type')

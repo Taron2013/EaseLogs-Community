@@ -54,7 +54,7 @@ class ArtworkBulkDeleteRequest extends FormRequest
     {
         $params = [];
 
-        foreach (['filter', 'sort', 'direction', 'artwork_type', 'medium', 'page'] as $key) {
+        foreach (['filter', 'sort', 'direction', 'artwork_type', 'medium', 'q', 'page'] as $key) {
             $value = $this->input($key);
 
             if (is_string($value) && trim($value) !== '') {

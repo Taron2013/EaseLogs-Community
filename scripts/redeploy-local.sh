@@ -12,7 +12,18 @@
 #     no artwork records reference them until you upload again.
 #   Always: validates public/storage -> storage/app/public (fixes broken symlinks).
 #
+# Usage:
+#   ./scripts/redeploy-local.sh           # interactive: choose preserve (1) or reset (2)
+#   ./scripts/redeploy-local.sh --preserve   # keep database.sqlite and storage/app/public
+#
 set -euo pipefail
+
+DEPLOY_PRESERVE=0
+for arg in "$@"; do
+  if [[ "$arg" == "--preserve" ]]; then
+    DEPLOY_PRESERVE=1
+  fi
+done
 
 readonly PROD="/var/www/projects/easelogs"
 readonly DEPLOY_USER="${SUDO_USER:-${USER:-artistdoug}}"
@@ -51,6 +62,13 @@ print_banner() {
 }
 
 prompt_database_choice() {
+  if [[ "$DEPLOY_PRESERVE" == "1" ]]; then
+    DB_CHOICE="1"
+    echo "Database handling: preserve (non-interactive --preserve)"
+    echo "  Keeps database/database.sqlite and storage/app/public/"
+    return 0
+  fi
+
   echo "Database handling:"
   echo "  1) Preserve current local database data"
   echo "  2) Reset local database with migrate:fresh"

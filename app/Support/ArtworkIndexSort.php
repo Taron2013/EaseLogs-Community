@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class ArtworkIndexSort
 {
     /**
-     * Internal key used when the listing uses the default composite order.
+     * Internal key used when the listing uses the default updated_at order.
      */
     public const DEFAULT_SORT = 'default';
 
@@ -159,16 +159,15 @@ class ArtworkIndexSort
     }
 
     /**
-     * Default listing: incomplete works first, then completed by completed_date descending.
+     * Default listing: most recently updated artwork first.
      *
-     * SQL: ORDER BY completed_date IS NULL DESC, completed_date DESC
+     * SQL: ORDER BY updated_at DESC
      *
      * @param  Builder<\App\Models\Artwork>  $query
      */
     private function applyDefaultListingSort(Builder $query): void
     {
-        $query->orderByRaw('completed_date IS NULL DESC')
-            ->orderByDesc('completed_date');
+        $query->orderByDesc('updated_at');
     }
 
     /**

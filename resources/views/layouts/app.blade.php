@@ -127,6 +127,16 @@
         }
         .filter-field label { font-size: 0.8rem; font-weight: 500; color: #555; }
         .filter-apply-btn { align-self: flex-end; }
+        .artwork-sort-bar {
+            margin-bottom: 1.25rem;
+            padding: 0.85rem 1rem;
+            background: #fff;
+            border: 1px solid #ececeb;
+            border-radius: 8px;
+        }
+        .artwork-sort-quick { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.75rem; }
+        .artwork-sort-fields { display: none; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem 0.75rem; }
+        .artwork-filters-clear-sep { color: #888; }
         table { width: 100%; border-collapse: collapse; background: #fff; }
         th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid #eee; }
         th { background: #f0f0ee; font-weight: 600; }
@@ -338,9 +348,27 @@
                 width: 100%;
                 text-align: center;
             }
+            .artwork-sort-fields-mobile {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .artwork-sort-fields-mobile .filter-field {
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+            }
+            .artwork-sort-fields-mobile select {
+                width: 100%;
+                min-width: 0;
+            }
+            .artwork-sort-fields-mobile .filter-apply-btn {
+                width: 100%;
+            }
         }
         @media (min-width: 769px) {
             .artwork-mobile-list { display: none; }
+            .artwork-sort-fields-mobile { display: none; }
         }
     </style>
 </head>

@@ -8,23 +8,27 @@
     </p>
 
     @php
-        $indexQuery = array_merge($filters->queryParams(), $sort->queryParams());
+        $listQuery = array_merge($filters->queryParams(), $search->queryParams());
+        $indexQuery = array_merge($listQuery, $sort->queryParams());
+        $hasActiveViewModifiers = $filters->hasActiveFilters()
+            || $search->hasTerm()
+            || ! $sort->usesDefaultListing();
     @endphp
 
     <section class="artwork-filters" aria-label="Artwork filters">
         <p class="artwork-filters-label">Filter</p>
         <div class="artwork-filters-quick">
-            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('all'), $sort->queryParams())) }}"
+            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('all'), $search->queryParams(), $sort->queryParams())) }}"
                class="filter-pill{{ $filters->isQuickFilterActive('all') ? ' is-active' : '' }}">All</a>
-            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('in_progress'), $sort->queryParams())) }}"
+            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('in_progress'), $search->queryParams(), $sort->queryParams())) }}"
                class="filter-pill{{ $filters->isQuickFilterActive('in_progress') ? ' is-active' : '' }}">In progress</a>
-            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('completed'), $sort->queryParams())) }}"
+            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('completed'), $search->queryParams(), $sort->queryParams())) }}"
                class="filter-pill{{ $filters->isQuickFilterActive('completed') ? ' is-active' : '' }}">Completed</a>
-            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('untitled'), $sort->queryParams())) }}"
+            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('untitled'), $search->queryParams(), $sort->queryParams())) }}"
                class="filter-pill{{ $filters->isQuickFilterActive('untitled') ? ' is-active' : '' }}">Untitled</a>
-            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('missing_photo'), $sort->queryParams())) }}"
+            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('missing_photo'), $search->queryParams(), $sort->queryParams())) }}"
                class="filter-pill{{ $filters->isQuickFilterActive('missing_photo') ? ' is-active' : '' }}">Missing photo</a>
-            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('missing_dimensions'), $sort->queryParams())) }}"
+            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('missing_dimensions'), $search->queryParams(), $sort->queryParams())) }}"
                class="filter-pill{{ $filters->isQuickFilterActive('missing_dimensions') ? ' is-active' : '' }}">Missing dimensions</a>
         </div>
 
@@ -35,6 +39,11 @@
             @if ($filters->quickFilter() !== 'all')
                 <input type="hidden" name="filter" value="{{ $filters->quickFilter() }}">
             @endif
+
+            <div class="filter-field">
+                <label for="filter_q">Search</label>
+                <input type="search" name="q" id="filter_q" value="{{ $search->term() ?? '' }}" placeholder="Title or notes" autocomplete="off">
+            </div>
 
             <div class="filter-field">
                 <label for="filter_artwork_type">Artwork type</label>
@@ -59,12 +68,18 @@
             <button type="submit" class="btn filter-apply-btn">Apply</button>
         </form>
 
-        @if ($filters->hasActiveFilters())
+        @if ($hasActiveViewModifiers)
             <p class="artwork-filters-clear">
-                <a href="{{ route('artworks.index', $sort->queryParams()) }}">Clear filters</a>
+                @if ($filters->hasActiveFilters())
+                    <a href="{{ route('artworks.index', array_merge($search->queryParams(), $sort->queryParams())) }}">Clear filters</a>
+                    <span class="artwork-filters-clear-sep"> · </span>
+                @endif
+                <a href="{{ route('artworks.index') }}">Reset view</a>
             </p>
         @endif
     </section>
+
+    @include('artworks._index_sort_bar', ['filters' => $filters, 'search' => $search, 'sort' => $sort])
 
     @if ($errors->any())
         <div class="flash flash-error" role="alert">
@@ -77,8 +92,8 @@
     @endif
 
     @if ($artworks->isEmpty())
-        @if ($filters->hasActiveFilters())
-            <p>No artworks match these filters. <a href="{{ route('artworks.index', $sort->queryParams()) }}">Clear filters</a>.</p>
+        @if ($filters->hasActiveFilters() || $search->hasTerm())
+            <p>No artworks match this view. <a href="{{ route('artworks.index', array_merge($search->queryParams(), $sort->queryParams())) }}">Clear filters</a>@if ($search->hasTerm() || ! $sort->usesDefaultListing()) or <a href="{{ route('artworks.index') }}">reset view</a>@endif.</p>
         @else
             <p>No artworks yet. <a href="{{ route('artworks.create') }}">Create your first artwork</a>.</p>
         @endif
@@ -122,37 +137,37 @@
                     </th>
                     <th>Photo</th>
                     <th>
-                        <a href="{{ route('artworks.index', $sort->queryParamsFor('title', $filters->queryParams())) }}" class="sort-link">
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('title', $listQuery)) }}" class="sort-link">
                             Title <span class="sort-indicator">{{ $sort->indicator('title') }}</span>
                         </a>
                     </th>
                     <th>
-                        <a href="{{ route('artworks.index', $sort->queryParamsFor('artwork_type', $filters->queryParams())) }}" class="sort-link">
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('artwork_type', $listQuery)) }}" class="sort-link">
                             Artwork type <span class="sort-indicator">{{ $sort->indicator('artwork_type') }}</span>
                         </a>
                     </th>
                     <th>
-                        <a href="{{ route('artworks.index', $sort->queryParamsFor('medium', $filters->queryParams())) }}" class="sort-link">
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('medium', $listQuery)) }}" class="sort-link">
                             Medium <span class="sort-indicator">{{ $sort->indicator('medium') }}</span>
                         </a>
                     </th>
                     <th>
-                        <a href="{{ route('artworks.index', $sort->queryParamsFor('dimensions', $filters->queryParams())) }}" class="sort-link">
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('dimensions', $listQuery)) }}" class="sort-link">
                             Dimensions <span class="sort-indicator">{{ $sort->indicator('dimensions') }}</span>
                         </a>
                     </th>
                     <th>
-                        <a href="{{ route('artworks.index', $sort->queryParamsFor('start_date', $filters->queryParams())) }}" class="sort-link">
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('start_date', $listQuery)) }}" class="sort-link">
                             Start date <span class="sort-indicator">{{ $sort->indicator('start_date') }}</span>
                         </a>
                     </th>
                     <th>
-                        <a href="{{ route('artworks.index', $sort->queryParamsFor('completed_date', $filters->queryParams())) }}" class="sort-link">
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('completed_date', $listQuery)) }}" class="sort-link">
                             Completed date <span class="sort-indicator">{{ $sort->indicator('completed_date') }}</span>
                         </a>
                     </th>
                     <th>
-                        <a href="{{ route('artworks.index', $sort->queryParamsFor('updated_at', $filters->queryParams())) }}" class="sort-link">
+                        <a href="{{ route('artworks.index', $sort->queryParamsFor('updated_at', $listQuery)) }}" class="sort-link">
                             Updated <span class="sort-indicator">{{ $sort->indicator('updated_at') }}</span>
                         </a>
                     </th>
