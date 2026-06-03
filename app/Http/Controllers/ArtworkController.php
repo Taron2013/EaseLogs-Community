@@ -1,0 +1,166 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\ArtworkBulkDeleteRequest;
+use App\Http\Requests\ArtworkRequest;
+use App\Models\Artwork;
+use App\Models\User;
+use App\Support\ArtworkIndexFilters;
+use App\Support\ArtworkIndexSearch;
+use App\Support\ArtworkIndexSort;
+use App\Services\ArtworkPhotoService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class ArtworkController extends Controller
+{
+    public function __construct(
+        private readonly ArtworkPhotoService $photoService,
+    ) {}
+
+    public function index(Request $request): View
+    {
+        $filters = ArtworkIndexFilters::fromRequest($request);
+        $search = ArtworkIndexSearch::fromRequest($request);
+        $sort = ArtworkIndexSort::fromRequest($request);
+
+        $artworks = Artwork::query()
+            ->with('latestPhoto')
+            ->tap(fn ($query) => $filters->apply($query))
+            ->tap(fn ($query) => $search->apply($query))
+            ->tap(fn ($query) => $sort->apply($query))
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('artworks.index', [
+            'artworks' => $artworks,
+            'filters' => $filters,
+            'search' => $search,
+            'sort' => $sort,
+            'artworkTypes' => Artwork::query()
+                ->whereNotNull('artwork_type')
+                ->where('artwork_type', '!=', '')
+                ->distinct()
+                ->orderBy('artwork_type')
+                ->pluck('artwork_type'),
+            'mediums' => Artwork::query()
+                ->whereNotNull('medium')
+                ->where('medium', '!=', '')
+                ->distinct()
+                ->orderBy('medium')
+                ->pluck('medium'),
+        ]);
+    }
+
+    public function create(): View
+    {
+        return view('artworks.create', [
+            'artwork' => new Artwork,
+        ]);
+    }
+
+    public function store(ArtworkRequest $request): RedirectResponse
+    {
+        $user = $request->user();
+        $data = $this->prepareArtworkData($request->validated(), $user);
+
+        $artwork = Artwork::create($data);
+
+        if ($request->hasFile('photo')) {
+            $this->photoService->store($artwork, $request->file('photo'));
+        }
+
+        return redirect()
+            ->route('artworks.index')
+            ->with('success', 'Artwork created successfully.');
+    }
+
+    public function show(Artwork $artwork): View
+    {
+        $artwork->load('latestPhoto');
+
+        return view('artworks.show', compact('artwork'));
+    }
+
+    public function edit(Artwork $artwork): View
+    {
+        $artwork->load('latestPhoto');
+
+        return view('artworks.edit', [
+            'artwork' => $artwork,
+        ]);
+    }
+
+    public function update(ArtworkRequest $request, Artwork $artwork): RedirectResponse
+    {
+        $user = User::query()->find($artwork->user_id) ?? $request->user();
+        $data = $this->prepareArtworkData(
+            $request->validated(),
+            $user,
+            $artwork
+        );
+
+        $artwork->update($data);
+
+        if ($request->hasFile('photo')) {
+            $this->photoService->store($artwork, $request->file('photo'));
+        }
+
+        return redirect()
+            ->route('artworks.show', $artwork)
+            ->with('success', 'Artwork updated successfully.');
+    }
+
+    public function destroy(Artwork $artwork): RedirectResponse
+    {
+        $this->deleteArtwork($artwork);
+
+        return redirect()
+            ->route('artworks.index')
+            ->with('success', 'Artwork deleted successfully.');
+    }
+
+    public function bulkDestroy(ArtworkBulkDeleteRequest $request): RedirectResponse
+    {
+        $ids = $request->artworkIds();
+
+        $artworks = Artwork::query()
+            ->whereIn('id', $ids)
+            ->orderBy('id')
+            ->get();
+
+        foreach ($artworks as $artwork) {
+            $this->deleteArtwork($artwork);
+        }
+
+        $count = $artworks->count();
+        $message = $count === 1
+            ? '1 artwork deleted.'
+            : "{$count} artworks deleted.";
+
+        return redirect()
+            ->route('artworks.index', $request->indexQueryParams())
+            ->with('success', $message);
+    }
+
+    private function deleteArtwork(Artwork $artwork): void
+    {
+        $this->photoService->deletePhotosForArtwork($artwork);
+        $artwork->delete();
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function prepareArtworkData(array $data, ?User $user, ?Artwork $artwork = null): array
+    {
+        unset($data['photo'], $data['completed_work'], $data['confirm_completed_photo_upload']);
+
+        $data['user_id'] = $user?->id ?? $artwork?->user_id;
+
+        return $data;
+    }
+}
