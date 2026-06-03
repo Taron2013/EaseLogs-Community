@@ -38,6 +38,24 @@
         .app-nav a { margin-right: 0; }
         .app-nav-logout { display: inline; margin: 0; }
         .profile-card { max-width: 32rem; }
+        .profile-account-details {
+            display: grid;
+            grid-template-columns: 10rem 1fr;
+            gap: 0.35rem 1rem;
+            margin: 0;
+            max-width: 100%;
+        }
+        .profile-account-details dt {
+            font-weight: 500;
+            color: #555;
+            font-size: 0.875rem;
+        }
+        .profile-account-details dd {
+            margin: 0;
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
         .flash { padding: 0.75rem 1rem; margin-bottom: 1rem; border-radius: 4px; }
         .flash-success { background: #e8f5e9; border: 1px solid #a5d6a7; }
         .flash-error { background: #ffebee; border: 1px solid #ef9a9a; }
@@ -166,9 +184,24 @@
         .field-hint { font-size: 0.8rem; color: #666; margin-top: 0.2rem; }
         .errors ul { margin: 0; padding-left: 1.25rem; }
         .actions { margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .detail-grid { display: grid; grid-template-columns: 10rem 1fr; gap: 0.35rem 1rem; background: #fff; padding: 1rem; border: 1px solid #eee; border-radius: 4px; }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 10rem 1fr;
+            gap: 0.35rem 1rem;
+            background: #fff;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            max-width: 100%;
+            overflow: hidden;
+        }
         .detail-grid dt { font-weight: 500; color: #555; }
-        .detail-grid dd { margin: 0; }
+        .detail-grid dd {
+            margin: 0;
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
         .pagination { margin-top: 1rem; }
         .easelogs-pagination { margin-top: 1rem; }
         .easelogs-pagination-list {
@@ -301,7 +334,24 @@
         }
         .artwork-edit-photo-wrap { margin-bottom: 1.25rem; }
         @media (max-width: 768px) {
+            html,
+            body {
+                overflow-x: clip;
+            }
             body { padding: 1rem; }
+            .container {
+                min-width: 0;
+            }
+            .profile-page .page-heading {
+                font-size: 1.35rem;
+            }
+            .profile-page .page-intro {
+                margin-bottom: 1.25rem;
+                max-width: none;
+            }
+            .profile-card.form-section {
+                padding: 1rem;
+            }
             .app-nav {
                 flex-direction: column;
                 align-items: stretch;
@@ -364,6 +414,55 @@
             }
             .artwork-sort-fields-mobile .filter-apply-btn {
                 width: 100%;
+            }
+            .detail-grid {
+                grid-template-columns: 1fr;
+                gap: 0.2rem 0;
+                padding: 0.85rem 1rem;
+            }
+            .detail-grid dt {
+                margin-top: 0.75rem;
+            }
+            .detail-grid dt:first-child {
+                margin-top: 0;
+            }
+            .detail-grid dd {
+                margin-bottom: 0.35rem;
+            }
+            .profile-account-details {
+                grid-template-columns: 1fr;
+                gap: 0.25rem 0;
+            }
+            .profile-account-details dt {
+                margin-top: 1rem;
+            }
+            .profile-account-details dt:first-child {
+                margin-top: 0;
+            }
+            .profile-account-details dd {
+                margin-bottom: 0;
+                padding-bottom: 0.15rem;
+            }
+            .profile-account-details dt + dd {
+                margin-bottom: 0.25rem;
+            }
+            .profile-card {
+                max-width: none;
+                width: 100%;
+            }
+            .profile-card .field input[type="text"],
+            .profile-card .field input[type="email"],
+            .profile-card .field input[type="password"] {
+                max-width: none;
+            }
+            .profile-card .actions {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+            .profile-card .actions .btn {
+                width: 100%;
+                text-align: center;
             }
         }
         @media (min-width: 769px) {

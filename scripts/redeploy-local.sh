@@ -35,6 +35,7 @@ readonly -a REQUIRED_DEPLOY_PATHS=(
   "scripts/redeploy-local.sh"
   "resources/views/artworks/index.blade.php"
   "resources/views/artworks/pagination.blade.php"
+  "resources/views/vendor/pagination/easelogs.blade.php"
   "app/Http/Controllers/ArtworkController.php"
 )
 
@@ -234,11 +235,11 @@ sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$PROD"
 step "Sync application code (rsync)"
 echo "    Synced: app/, resources/views/, routes/, config/, database/migrations/, public/build assets source, etc."
 echo "    Preserved on target: .env, database/database.sqlite, storage/app/public uploads"
-echo "    Excluded from overwrite: vendor/, node_modules/, compiled views/cache/sessions"
+echo "    Excluded from overwrite: Composer vendor/ (root only), node_modules/, compiled views/cache/sessions"
 rsync -av --delete \
   --exclude=".git" \
   --exclude="node_modules" \
-  --exclude="vendor" \
+  --exclude="/vendor/" \
   --exclude=".env" \
   --exclude="database/database.sqlite" \
   --exclude="public/storage" \

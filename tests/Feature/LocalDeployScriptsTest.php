@@ -20,6 +20,12 @@ class LocalDeployScriptsTest extends TestCase
         $this->assertStringNotContainsString('easelog-pro', $contents);
         $this->assertStringNotContainsString('easelogs.pro', $contents);
         $this->assertStringContainsString('storage:link', $contents);
+        $this->assertStringContainsString(
+            'resources/views/vendor/pagination/easelogs.blade.php',
+            $contents,
+        );
+        $this->assertStringContainsString('--exclude="/vendor/"', $contents);
+        $this->assertStringNotContainsString('--exclude="vendor"', $contents);
     }
 
     public function test_verify_script_checks_community_deploy_only(): void

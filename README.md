@@ -130,20 +130,28 @@ Full nginx, hosts, and TLS notes: [docs/LOCAL_INTRANET_DEPLOYMENT.md](docs/LOCAL
 
 ## Licensing
 
-EaseLogs is **not** MIT-licensed as a whole. It uses a dual-license model:
+**EaseLogs Community Edition** is licensed under the **[EaseLogs Community License](LICENSE)** — not MIT, and not public-domain.
 
-- **Community use** — personal, educational, and non-commercial use under the [EaseLogs Community License](LICENSE)
-- **Commercial use** — requires a separate written commercial agreement
+- **Community use** — personal, educational, and non-commercial self-hosting as described in [LICENSE](LICENSE) and [LICENSE_OVERVIEW.md](LICENSE_OVERVIEW.md)
+- **Commercial use** — requires a separate written commercial agreement ([COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md))
 
-Read these documents before use, modification, or redistribution:
+### License and contribution documents
 
-- [LICENSE](LICENSE) — full EaseLogs Community License terms
-- [LICENSE_OVERVIEW.md](LICENSE_OVERVIEW.md) — plain-language summary and examples
-- [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md) — commercial licensing requirements
+| Document | Purpose |
+|----------|---------|
+| [LICENSE](LICENSE) | Full EaseLogs Community License |
+| [LICENSE_OVERVIEW.md](LICENSE_OVERVIEW.md) | Plain-language summary and examples |
+| [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md) | When a commercial license is required |
+| [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | Attribution for Composer, npm, and framework dependencies |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute; license and provenance expectations |
 
 ### Third-party software
 
-EaseLogs depends on third-party packages (including the Laravel framework) that remain licensed under their own terms. See LICENSE Section 7. Laravel is MIT-licensed; that license applies to Laravel itself, not to EaseLogs application code.
+EaseLogs depends on third-party packages that remain under **their own licenses** (see LICENSE Section 7 and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
+
+- **[Laravel](https://laravel.com)** (`laravel/framework`) is **MIT-licensed**. Laravel is not owned by EaseLogs; MIT terms apply to Laravel code in `vendor/`, not to EaseLogs application source.
+- Most PHP and JavaScript build dependencies are **MIT**, **BSD-3-Clause**, or **Apache-2.0**. Original license files in `vendor/` and `node_modules/` remain authoritative.
+- **EaseLogs application code** (`app/`, `resources/views/`, etc.) is **not** relicensed under MIT or other dependency licenses.
 
 ## Copyright
 

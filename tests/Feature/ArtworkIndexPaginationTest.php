@@ -45,6 +45,7 @@ class ArtworkIndexPaginationTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('artworks.index');
+        $this->assertFileExists(resource_path('views/vendor/pagination/easelogs.blade.php'));
         $response->assertSee('easelogs-pagination', false);
         $response->assertSee('Previous', false);
         $response->assertSee('Next', false);

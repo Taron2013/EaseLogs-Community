@@ -393,4 +393,4 @@ php artisan serve --host=0.0.0.0 --port=8080
 
 ---
 
-Copyright and licensing: see [LICENSE](../LICENSE) and [LICENSE_OVERVIEW.md](../LICENSE_OVERVIEW.md) in the repository root.
+Copyright and licensing: see [LICENSE](../LICENSE), [LICENSE_OVERVIEW.md](../LICENSE_OVERVIEW.md), [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md), and [CONTRIBUTING.md](../CONTRIBUTING.md) in the repository root.

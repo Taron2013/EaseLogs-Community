@@ -200,4 +200,29 @@ class ProfileTest extends TestCase
         $response->assertSee('Sign out', false);
     }
 
+    public function test_profile_show_renders_account_detail_grid_and_long_email(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'very.long.email.address.for.mobile.wrap@example-studio.test',
+        ]);
+        $this->actingAs($user);
+
+        $response = $this->get(route('profile.show'));
+
+        $response->assertOk();
+        $response->assertSee('class="profile-account-details"', false);
+        $response->assertSee('very.long.email.address.for.mobile.wrap@example-studio.test', false);
+    }
+
+    public function test_layout_stacks_profile_account_details_on_mobile_breakpoint(): void
+    {
+        $layout = file_get_contents(resource_path('views/layouts/app.blade.php'));
+
+        $this->assertStringContainsString('@media (max-width: 768px)', $layout);
+        $this->assertStringContainsString('.profile-account-details dt:first-child', $layout);
+        $this->assertStringContainsString('.profile-account-details', $layout);
+        $this->assertStringContainsString('overflow-wrap: anywhere', $layout);
+        $this->assertStringContainsString('.profile-card .actions .btn', $layout);
+    }
+
 }
