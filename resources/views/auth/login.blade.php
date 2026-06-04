@@ -7,6 +7,7 @@
     <p class="page-intro">Sign in to manage your artwork inventory.</p>
 
     @include('auth._social_login_extension')
+    @include('partials.demo-login-hint')
 
     <div class="form-section">
         @if ($errors->any())
@@ -37,5 +38,7 @@
 
             <button type="submit" class="btn">Sign in</button>
         </form>
+
+        @include('partials.demo-one-click-login')
     </div>
 @endsection

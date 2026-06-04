@@ -60,6 +60,7 @@
         .flash-success { background: #e8f5e9; border: 1px solid #a5d6a7; }
         .flash-error { background: #ffebee; border: 1px solid #ef9a9a; }
         .flash-warning { background: #fff8e1; border: 1px solid #ffe082; color: #5d4e37; }
+        .flash-info { background: #e8f0fa; border: 1px solid #b8cfe8; color: #1a3d6b; }
         .btn {
             display: inline-block;
             padding: 0.4rem 0.75rem;
@@ -182,6 +183,24 @@
         .field-inline { display: flex; align-items: center; gap: 0.5rem; }
         .field-inline input[type="checkbox"] { width: auto; max-width: none; }
         .field-hint { font-size: 0.8rem; color: #666; margin-top: 0.2rem; }
+        .demo-restriction-notice {
+            margin: 0.35rem 0 0;
+            padding: 0.65rem 0.75rem;
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            border-radius: 6px;
+            color: #5d4e37;
+        }
+        .demo-public-notice {
+            margin: 0 0 1rem;
+            padding: 0.75rem 1rem;
+            background: #e8f0fa;
+            border: 1px solid #b8cfe8;
+            border-radius: 8px;
+            color: #1a3d6b;
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
         .errors ul { margin: 0; padding-left: 1.25rem; }
         .actions { margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
         .detail-grid {
@@ -500,9 +519,15 @@
             <div class="flash flash-success">{{ session('success') }}</div>
         @endif
 
+        @if (session('info'))
+            <div class="flash flash-info">{{ session('info') }}</div>
+        @endif
+
         @if (session('error'))
             <div class="flash flash-error">{{ session('error') }}</div>
         @endif
+
+        @include('partials.demo-public-notice')
 
         @yield('content')
     </div>

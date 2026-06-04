@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfilePasswordUpdateRequest;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Support\DemoMode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -25,6 +26,8 @@ class ProfileController extends Controller
 
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+        DemoMode::ensureAccountChangesAllowed($request->user());
+
         $user = $request->user();
         $user->update($request->validated());
 
@@ -42,6 +45,8 @@ class ProfileController extends Controller
 
     public function updatePassword(ProfilePasswordUpdateRequest $request): RedirectResponse
     {
+        DemoMode::ensureAccountChangesAllowed($request->user());
+
         $request->user()->update([
             'password' => $request->validated('password'),
         ]);

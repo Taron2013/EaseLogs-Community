@@ -98,30 +98,34 @@
             <p>No artworks yet. <a href="{{ route('artworks.create') }}">Create your first artwork</a>.</p>
         @endif
     @else
-        <form id="bulk-delete-form"
-              method="POST"
-              action="{{ route('artworks.bulk-delete') }}"
-              class="bulk-delete-form">
-            @csrf
-            @method('DELETE')
-            @foreach ($indexQuery as $name => $value)
-                <input type="hidden" name="{{ $name }}" value="{{ $value }}">
-            @endforeach
-        </form>
+        @unless ($easelogsDemo['blocks_deletes'] ?? false)
+            <form id="bulk-delete-form"
+                  method="POST"
+                  action="{{ route('artworks.bulk-delete') }}"
+                  class="bulk-delete-form">
+                @csrf
+                @method('DELETE')
+                @foreach ($indexQuery as $name => $value)
+                    <input type="hidden" name="{{ $name }}" value="{{ $value }}">
+                @endforeach
+            </form>
 
-        <div id="bulk-actions" class="bulk-actions" hidden>
-            <p class="bulk-actions-count"><span id="bulk-selected-count">0</span> selected</p>
-            <button type="submit" form="bulk-delete-form" class="btn btn-danger" id="bulk-delete-submit">Delete Selected</button>
-            <button type="button" class="btn" id="bulk-clear-selection">Clear Selection</button>
-        </div>
+            <div id="bulk-actions" class="bulk-actions" hidden>
+                <p class="bulk-actions-count"><span id="bulk-selected-count">0</span> selected</p>
+                <button type="submit" form="bulk-delete-form" class="btn btn-danger" id="bulk-delete-submit">Delete Selected</button>
+                <button type="button" class="btn" id="bulk-clear-selection">Clear Selection</button>
+            </div>
+        @endunless
 
         <div class="artwork-mobile-list">
-            <div class="artwork-mobile-list-toolbar">
-                <label class="artwork-mobile-select-all">
-                    <input type="checkbox" id="artwork-select-all-mobile" aria-label="Select all artworks on this page">
-                    <span>Select all on page</span>
-                </label>
-            </div>
+            @unless ($easelogsDemo['blocks_deletes'] ?? false)
+                <div class="artwork-mobile-list-toolbar">
+                    <label class="artwork-mobile-select-all">
+                        <input type="checkbox" id="artwork-select-all-mobile" aria-label="Select all artworks on this page">
+                        <span>Select all on page</span>
+                    </label>
+                </div>
+            @endunless
             @foreach ($artworks as $artwork)
                 @include('artworks._index_mobile_card', ['artwork' => $artwork])
             @endforeach
@@ -131,10 +135,12 @@
         <table>
             <thead>
                 <tr>
-                    <th class="artwork-select-col">
-                        <span class="artwork-select-label">Select</span>
-                        <input type="checkbox" id="artwork-select-all" aria-label="Select all artworks on this page">
-                    </th>
+                    @unless ($easelogsDemo['blocks_deletes'] ?? false)
+                        <th class="artwork-select-col">
+                            <span class="artwork-select-label">Select</span>
+                            <input type="checkbox" id="artwork-select-all" aria-label="Select all artworks on this page">
+                        </th>
+                    @endunless
                     <th>Photo</th>
                     <th>
                         <a href="{{ route('artworks.index', $sort->queryParamsFor('title', $listQuery)) }}" class="sort-link">
@@ -177,14 +183,16 @@
             <tbody>
                 @foreach ($artworks as $artwork)
                     <tr>
-                        <td class="artwork-select-col">
-                            <input type="checkbox"
-                                   class="artwork-row-select"
-                                   name="ids[]"
-                                   value="{{ $artwork->id }}"
-                                   form="bulk-delete-form"
-                                   aria-label="Select {{ $artwork->displayTitle() }}">
-                        </td>
+                        @unless ($easelogsDemo['blocks_deletes'] ?? false)
+                            <td class="artwork-select-col">
+                                <input type="checkbox"
+                                       class="artwork-row-select"
+                                       name="ids[]"
+                                       value="{{ $artwork->id }}"
+                                       form="bulk-delete-form"
+                                       aria-label="Select {{ $artwork->displayTitle() }}">
+                            </td>
+                        @endunless
                         <td>
                             @include('artworks._index_artwork_photo', ['artwork' => $artwork])
                         </td>

@@ -34,11 +34,18 @@
 
     <div class="field">
         <label for="photo">{{ ($latestPhoto && $latestPhoto->existsOnDisk()) ? 'Replace photo' : 'Artwork photo' }}</label>
-        <input type="file" name="photo" id="photo" accept="image/jpeg,image/png,image/webp">
-        <p class="field-hint">JPEG, PNG, or WebP. Max {{ $maxMb }} MB. Uploading a new photo makes it the latest primary photo.</p>
+        @if ($easelogsDemo['blocks_upload_controls'] ?? false)
+            <p class="field-hint demo-restriction-notice">{{ $easelogsDemo['message_uploads_disabled'] }}</p>
+        @else
+            @if ($easelogsDemo['discards_uploads'] ?? false)
+                <p class="field-hint demo-restriction-notice">{{ $easelogsDemo['message_upload_discard_notice'] }}</p>
+            @endif
+            <input type="file" name="photo" id="photo" accept="image/jpeg,image/png,image/webp">
+            <p class="field-hint">JPEG, PNG, or WebP. Max {{ $maxMb }} MB. Uploading a new photo makes it the latest primary photo.</p>
+        @endif
     </div>
 
-    <div id="completed-photo-confirm-field" class="field" style="{{ $completedWorkChecked ? '' : 'display:none;' }}">
+    <div id="completed-photo-confirm-field" class="field" style="{{ ($completedWorkChecked && ! ($easelogsDemo['blocks_upload_controls'] ?? false)) ? '' : 'display:none;' }}">
         <input type="hidden" name="confirm_completed_photo_upload" value="0">
         <div class="field-inline">
             <input
@@ -58,7 +65,7 @@
     </div>
 </div>
 
-@if ($prominentPreview)
+@if ($prominentPreview && ! ($easelogsDemo['blocks_upload_controls'] ?? false))
     <script>
         (function () {
             const input = document.getElementById('photo');

@@ -17,10 +17,14 @@
                 <dd>{{ $user->email }}</dd>
             </dl>
 
-            <div class="actions">
+        <div class="actions">
+            @unless ($easelogsDemo['blocks_account_changes'] ?? false)
                 <a href="{{ route('profile.edit') }}" class="btn btn-primary">Edit profile</a>
                 <a href="{{ route('profile.password.edit') }}" class="btn">Change password</a>
-            </div>
+            @else
+                <p class="field-hint demo-restriction-notice">{{ $easelogsDemo['message_account_changes'] }}</p>
+            @endunless
+        </div>
         </section>
     </div>
 @endsection

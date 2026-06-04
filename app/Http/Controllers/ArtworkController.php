@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\ArtworkIndexFilters;
 use App\Support\ArtworkIndexSearch;
 use App\Support\ArtworkIndexSort;
+use App\Support\DemoMode;
 use App\Services\ArtworkPhotoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -72,9 +73,7 @@ class ArtworkController extends Controller
             $this->photoService->store($artwork, $request->file('photo'));
         }
 
-        return redirect()
-            ->route('artworks.index')
-            ->with('success', 'Artwork created successfully.');
+        return $this->redirectAfterArtworkStore($request, $artwork);
     }
 
     public function show(Artwork $artwork): View
@@ -108,9 +107,7 @@ class ArtworkController extends Controller
             $this->photoService->store($artwork, $request->file('photo'));
         }
 
-        return redirect()
-            ->route('artworks.show', $artwork)
-            ->with('success', 'Artwork updated successfully.');
+        return $this->redirectAfterArtworkUpdate($request, $artwork);
     }
 
     public function destroy(Artwork $artwork): RedirectResponse
@@ -162,5 +159,32 @@ class ArtworkController extends Controller
         $data['user_id'] = $user?->id ?? $artwork?->user_id;
 
         return $data;
+    }
+
+    private function redirectAfterArtworkStore(Request $request, Artwork $artwork): RedirectResponse
+    {
+        $redirect = redirect()
+            ->route('artworks.index')
+            ->with('success', 'Artwork created successfully.');
+
+        return $this->withDemoUploadDiscardNotice($request, $redirect);
+    }
+
+    private function redirectAfterArtworkUpdate(Request $request, Artwork $artwork): RedirectResponse
+    {
+        $redirect = redirect()
+            ->route('artworks.show', $artwork)
+            ->with('success', 'Artwork updated successfully.');
+
+        return $this->withDemoUploadDiscardNotice($request, $redirect);
+    }
+
+    private function withDemoUploadDiscardNotice(Request $request, RedirectResponse $redirect): RedirectResponse
+    {
+        if (! DemoMode::uploadWasDiscarded($request)) {
+            return $redirect;
+        }
+
+        return $redirect->with('info', DemoMode::MESSAGE_UPLOAD_DISCARDED);
     }
 }

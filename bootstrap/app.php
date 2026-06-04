@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureSetupIsAvailable;
 use App\Http\Middleware\EnsureSetupIsComplete;
+use App\Http\Middleware\RestrictDemoMode;
 use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'setup.complete' => EnsureSetupIsComplete::class,
             'setup.available' => EnsureSetupIsAvailable::class,
+            'restrict.demo' => RestrictDemoMode::class,
         ]);
 
         $middleware->redirectGuestsTo(function () {

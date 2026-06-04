@@ -18,27 +18,34 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('profile.update') }}">
-                @csrf
-                @method('PATCH')
-
-                <div class="field">
-                    <label for="name">Name</label>
-                    <input type="text" name="name" id="name" required autocomplete="name"
-                           value="{{ old('name', $user->name) }}">
-                </div>
-
-                <div class="field">
-                    <label for="email">Email</label>
-                    <input type="email" name="email" id="email" required autocomplete="email"
-                           value="{{ old('email', $user->email) }}">
-                </div>
-
+            @if ($easelogsDemo['blocks_account_changes'] ?? false)
+                <p class="field-hint demo-restriction-notice">{{ $easelogsDemo['message_account_changes'] }}</p>
                 <div class="actions">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <a href="{{ route('profile.show') }}" class="btn">Cancel</a>
+                    <a href="{{ route('profile.show') }}" class="btn">Back to profile</a>
                 </div>
-            </form>
+            @else
+                <form method="POST" action="{{ route('profile.update') }}">
+                    @csrf
+                    @method('PATCH')
+
+                    <div class="field">
+                        <label for="name">Name</label>
+                        <input type="text" name="name" id="name" required autocomplete="name"
+                               value="{{ old('name', $user->name) }}">
+                    </div>
+
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input type="email" name="email" id="email" required autocomplete="email"
+                               value="{{ old('email', $user->email) }}">
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <a href="{{ route('profile.show') }}" class="btn">Cancel</a>
+                    </div>
+                </form>
+            @endif
         </section>
     </div>
 @endsection

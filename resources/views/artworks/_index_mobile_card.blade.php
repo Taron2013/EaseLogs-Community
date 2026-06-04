@@ -2,12 +2,14 @@
 
 <article class="artwork-mobile-card">
     <div class="artwork-mobile-card-header">
-        <input type="checkbox"
-               class="artwork-row-select"
-               name="ids[]"
-               value="{{ $artwork->id }}"
-               form="bulk-delete-form"
-               aria-label="Select {{ $artwork->displayTitle() }}">
+        @unless ($easelogsDemo['blocks_deletes'] ?? false)
+            <input type="checkbox"
+                   class="artwork-row-select"
+                   name="ids[]"
+                   value="{{ $artwork->id }}"
+                   form="bulk-delete-form"
+                   aria-label="Select {{ $artwork->displayTitle() }}">
+        @endunless
         <div class="artwork-mobile-card-photo">
             @include('artworks._index_artwork_photo', ['artwork' => $artwork])
         </div>

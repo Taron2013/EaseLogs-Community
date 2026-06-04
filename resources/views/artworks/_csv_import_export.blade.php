@@ -14,14 +14,18 @@
         Extra columns are ignored. Dates accept common formats (YYYY-MM-DD, MM/DD/YYYY, written dates, ISO date-times); export uses YYYY-MM-DD.
         Unsupported fields (inventory, photos, and similar) are rejected.
     </p>
-    <form method="POST" action="{{ route('artworks.import.csv') }}" enctype="multipart/form-data" class="field-inline" style="align-items:flex-end;flex-wrap:wrap;gap:0.75rem;">
-        @csrf
-        <div class="field" style="margin-bottom:0;">
-            <label for="csv">CSV file</label>
-            <input type="file" name="csv" id="csv" accept=".csv,text/csv" required>
-        </div>
-        <button type="submit" class="btn">Import CSV</button>
-    </form>
+    @if ($easelogsDemo['blocks_imports'] ?? false)
+        <p class="field-hint demo-restriction-notice">{{ $easelogsDemo['message_imports'] }}</p>
+    @else
+        <form method="POST" action="{{ route('artworks.import.csv') }}" enctype="multipart/form-data" class="field-inline" style="align-items:flex-end;flex-wrap:wrap;gap:0.75rem;">
+            @csrf
+            <div class="field" style="margin-bottom:0;">
+                <label for="csv">CSV file</label>
+                <input type="file" name="csv" id="csv" accept=".csv,text/csv" required>
+            </div>
+            <button type="submit" class="btn">Import CSV</button>
+        </form>
+    @endif
     @error('csv')
         <p class="field-hint" style="color:#b71c1c;margin-top:0.5rem;">{{ $message }}</p>
     @enderror

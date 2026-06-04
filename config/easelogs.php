@@ -2,6 +2,28 @@
 
 return [
 
+    'demo_mode' => env('EASELOGS_DEMO_MODE', false),
+
+    'demo' => [
+        'upload_behavior' => env('EASELOGS_DEMO_UPLOAD_BEHAVIOR', 'enabled'),
+        'allow_imports' => env('EASELOGS_DEMO_ALLOW_IMPORTS', false),
+        'allow_deletes' => env('EASELOGS_DEMO_ALLOW_DELETES', false),
+        'allow_account_changes' => env('EASELOGS_DEMO_ALLOW_ACCOUNT_CHANGES', false),
+        'allow_registration' => env('EASELOGS_DEMO_ALLOW_REGISTRATION', false),
+        'allow_password_reset' => env('EASELOGS_DEMO_ALLOW_PASSWORD_RESET', false),
+        'allow_email_sending' => env('EASELOGS_DEMO_ALLOW_EMAIL_SENDING', false),
+        'allow_external_webhooks' => env('EASELOGS_DEMO_ALLOW_EXTERNAL_WEBHOOKS', false),
+        'show_public_notice' => env('EASELOGS_DEMO_SHOW_PUBLIC_NOTICE', true),
+
+        'user' => [
+            'name' => env('EASELOGS_DEMO_USER_NAME', 'Demo User'),
+            'email' => env('EASELOGS_DEMO_USER_EMAIL', 'demo@easelogs.com'),
+            'password' => env('EASELOGS_DEMO_USER_PASSWORD', 'change-this-demo-password'),
+            'show_login_hint' => env('EASELOGS_DEMO_SHOW_LOGIN_HINT', true),
+            'allow_one_click_login' => env('EASELOGS_DEMO_ALLOW_ONE_CLICK_LOGIN', true),
+        ],
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | EaseLogs Community Edition branding

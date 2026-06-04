@@ -60,6 +60,64 @@ Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) and complete first-run set
 ./vendor/bin/phpunit
 ```
 
+### Demo Mode
+
+Public demo deployments can tune behavior with environment variables (no code changes required). When `EASELOGS_DEMO_MODE=false` (default), all demo flags are ignored and the app behaves normally.
+
+**Upload behavior** (`EASELOGS_DEMO_UPLOAD_BEHAVIOR`) when demo mode is on:
+
+| Value | Behavior |
+|-------|----------|
+| `enabled` | Normal photo uploads |
+| `discard` | Upload UI visible; files removed before the controller — nothing stored or processed |
+| `disabled` | Upload attempts with a photo return HTTP 403 |
+
+### Public Demo Deployment
+
+Recommended `.env` for a read-only public demo (pre-seed one owner account; do not expose setup):
+
+```env
+EASELOGS_DEMO_MODE=true
+EASELOGS_DEMO_UPLOAD_BEHAVIOR=discard
+EASELOGS_DEMO_ALLOW_IMPORTS=false
+EASELOGS_DEMO_ALLOW_DELETES=false
+EASELOGS_DEMO_ALLOW_ACCOUNT_CHANGES=false
+EASELOGS_DEMO_ALLOW_REGISTRATION=false
+EASELOGS_DEMO_ALLOW_PASSWORD_RESET=false
+EASELOGS_DEMO_ALLOW_EMAIL_SENDING=false
+EASELOGS_DEMO_ALLOW_EXTERNAL_WEBHOOKS=false
+EASELOGS_DEMO_SHOW_PUBLIC_NOTICE=true
+EASELOGS_DEMO_USER_NAME="Demo User"
+EASELOGS_DEMO_USER_EMAIL="demo@easelogs.com"
+EASELOGS_DEMO_USER_PASSWORD="change-this-demo-password"
+EASELOGS_DEMO_SHOW_LOGIN_HINT=true
+EASELOGS_DEMO_ALLOW_ONE_CLICK_LOGIN=true
+```
+
+Seed or refresh the demo account and sample artworks:
+
+```bash
+php artisan easelogs:demo-ensure
+# Periodic full reset (e.g. cron):
+php artisan easelogs:demo-reset --force
+```
+
+With demo mode on, `php artisan db:seed` also runs `DemoSeeder` (creates/updates the demo user and sample inventory).
+
+With these settings, EaseLogs:
+
+- Shows a site-wide demo banner on every page
+- Lets visitors exercise upload forms but **discards** files (no storage, thumbnails, or `ArtworkPhoto` rows)
+- Provides a configurable demo login (`EASELOGS_DEMO_USER_*`), optional credential hint and one-click login on the sign-in page
+- Blocks profile/email/password changes (including the demo user), registration/setup, deletes, bulk delete, and CSV import (HTTP 403)
+- Still allows artwork **metadata** create/edit so visitors can try the inventory UI; photo bytes follow upload behavior (`disabled` / `discard` / `enabled`)
+- Forces mail to the `array` driver and cancels outbound mail notifications
+- Blocks external webhooks and payment/license hooks via `DemoOutbound` guards (for future integrations)
+
+Set any `EASELOGS_DEMO_ALLOW_*` flag to `true` only when you intentionally want that action in a demo environment. Backend middleware enforces restrictions even if the UI is bypassed.
+
+See `.env.example` for the full variable list.
+
 ### Storage
 
 Artwork photos are stored under `storage/app/public/artworks/`.

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Artwork;
 use App\Models\ArtworkPhoto;
+use App\Support\DemoMode;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -12,6 +13,8 @@ class ArtworkPhotoService
 {
     public function store(Artwork $artwork, UploadedFile $file): ArtworkPhoto
     {
+        DemoMode::ensurePhotoStorageAllowed();
+
         $directory = 'artworks/'.$artwork->id;
         $filename = Str::uuid()->toString().'.'.$file->guessExtension();
         $path = $file->storeAs($directory, $filename, 'public');
@@ -35,6 +38,8 @@ class ArtworkPhotoService
 
     public function deletePhotosForArtwork(Artwork $artwork): void
     {
+        DemoMode::ensureDeletesAllowed();
+
         $artwork->loadMissing('photos');
 
         foreach ($artwork->photos as $photo) {

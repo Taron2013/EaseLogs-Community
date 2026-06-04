@@ -42,10 +42,14 @@
         <dd>{{ $artwork->updated_at?->format('Y-m-d H:i') }}</dd>
     </dl>
 
-    <form method="POST" action="{{ route('artworks.destroy', $artwork) }}" style="margin-top:1.5rem;"
-        onsubmit="return confirm('Delete this artwork? This cannot be undone.');">
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="btn btn-danger">Delete artwork</button>
-    </form>
+    @unless ($easelogsDemo['blocks_deletes'] ?? false)
+        <form method="POST" action="{{ route('artworks.destroy', $artwork) }}" style="margin-top:1.5rem;"
+            onsubmit="return confirm('Delete this artwork? This cannot be undone.');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger">Delete artwork</button>
+        </form>
+    @else
+        <p class="field-hint demo-restriction-notice" style="margin-top:1.5rem;">{{ $easelogsDemo['message_deletes'] }}</p>
+    @endunless
 @endsection

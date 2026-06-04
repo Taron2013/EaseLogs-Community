@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Artwork;
 use App\Models\User;
+use App\Support\DemoMode;
 use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\UploadedFile;
@@ -84,6 +85,8 @@ class ArtworkCsvService
      */
     public function import(UploadedFile $file, User $user): array
     {
+        DemoMode::ensureAllowed('imports');
+
         $handle = fopen($file->getRealPath(), 'r');
 
         if ($handle === false) {

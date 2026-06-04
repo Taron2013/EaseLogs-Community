@@ -52,6 +52,40 @@
         .page-heading { margin-top: 0; font-size: 1.35rem; }
         .page-intro { color: #555; margin-bottom: 1.25rem; }
         .errors ul { margin: 0 0 1rem; padding-left: 1.25rem; color: #b71c1c; }
+        .flash-info { background: #e8f0fa; border: 1px solid #b8cfe8; color: #1a3d6b; }
+        .demo-public-notice {
+            margin: 0 0 1rem;
+            padding: 0.75rem 1rem;
+            background: #e8f0fa;
+            border: 1px solid #b8cfe8;
+            border-radius: 8px;
+            color: #1a3d6b;
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+        .demo-login-hint {
+            margin: 0 0 1rem;
+            padding: 0.85rem 1rem;
+            background: #fff;
+            border: 1px solid #ececeb;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+        .demo-login-hint p { margin: 0 0 0.35rem; }
+        .demo-login-hint-credentials { color: #444; line-height: 1.5; }
+        .demo-login-hint code {
+            font-family: ui-monospace, monospace;
+            font-size: 0.85em;
+            background: #f4f4f2;
+            padding: 0.1rem 0.25rem;
+            border-radius: 3px;
+        }
+        .demo-one-click-login { margin-top: 1rem; }
+        .btn-secondary {
+            background: #fff;
+            color: #1a4d8c;
+        }
+        .btn-secondary:hover { background: #f0f4fa; }
     </style>
 </head>
 <body>
@@ -70,6 +104,8 @@
         @if (session('error'))
             <div class="flash flash-error">{{ session('error') }}</div>
         @endif
+
+        @include('partials.demo-public-notice')
 
         @yield('content')
     </div>

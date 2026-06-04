@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
+use App\Support\DemoMode;
+use App\Support\DemoUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +14,10 @@ class LoginController extends Controller
 {
     public function create(): View
     {
+        if (DemoMode::enabled() && DemoUser::isConfigured()) {
+            DemoUser::ensureExists();
+        }
+
         return view('auth.login');
     }
 

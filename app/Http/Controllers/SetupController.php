@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\FirstRunSetupRequest;
 use App\Models\User;
+use App\Support\DemoMode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,8 @@ class SetupController extends Controller
 
     public function store(FirstRunSetupRequest $request): RedirectResponse
     {
+        DemoMode::ensureAllowed('registration');
+
         if (User::query()->exists()) {
             abort(404);
         }
