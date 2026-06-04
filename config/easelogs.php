@@ -1,6 +1,20 @@
 <?php
 
+use App\Support\UrlPrefix;
+
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | URL path prefix (subdirectory deployment)
+    |--------------------------------------------------------------------------
+    |
+    | When set (e.g. "community"), web routes are registered under /community.
+    | Set APP_URL to the full public URL including this path segment.
+    |
+    */
+
+    'url_prefix' => UrlPrefix::normalize(env('EASELOGS_URL_PREFIX')),
 
     'demo_mode' => env('EASELOGS_DEMO_MODE', false),
 

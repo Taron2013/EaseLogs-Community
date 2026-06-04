@@ -74,5 +74,7 @@ Route::middleware(['setup.complete', 'auth'])->group(function (): void {
     |
     | Artwork metadata create/update stays allowed in public demo; uploads use
     | restrict.demo:uploads (disabled = 403, discard = strip file before controller).
+    |
+    | Web routes are prefixed in bootstrap/app.php via config('easelogs.url_prefix').
     */
 });

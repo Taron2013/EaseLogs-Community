@@ -118,6 +118,25 @@ Set any `EASELOGS_DEMO_ALLOW_*` flag to `true` only when you intentionally want 
 
 See `.env.example` for the full variable list.
 
+### Subdirectory deployment (URL prefix)
+
+To mount EaseLogs under a path such as `/community` (common for shared demos or reverse proxies), set:
+
+```env
+APP_URL=https://demo.easelogs.com/community
+EASELOGS_URL_PREFIX=community
+```
+
+Route names stay the same (`login`, `artworks.index`, etc.); `route()` and redirects include the prefix automatically. With no prefix (default), URLs remain `/login`, `/artworks`, and so on.
+
+Configure your web server so requests under `/community` reach the Laravel `public` index. The health check route (`/up`) remains at the application root for load balancers.
+
+If you previously ran `php artisan route:cache`, clear it after changing `EASELOGS_URL_PREFIX` so the prefix is rebuilt:
+
+```bash
+php artisan route:clear
+```
+
 ### Storage
 
 Artwork photos are stored under `storage/app/public/artworks/`.

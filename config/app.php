@@ -50,6 +50,9 @@ return [
     | the Artisan command line tool. You should set this to the root of
     | the application so that it's available within Artisan commands.
     |
+    | For subdirectory deployment, include the path prefix in APP_URL
+    | (e.g. https://demo.easelogs.com/community) and set EASELOGS_URL_PREFIX.
+    |
     */
 
     'url' => env('APP_URL', 'http://localhost'),

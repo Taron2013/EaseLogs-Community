@@ -11,14 +11,14 @@ class ExampleTest extends TestCase
 
     public function test_home_redirects_to_setup_when_no_users(): void
     {
-        $response = $this->get('/');
+        $response = $this->get(route('home'));
 
         $response->assertRedirect(route('setup.create'));
     }
 
     public function test_artworks_requires_setup_or_auth(): void
     {
-        $response = $this->get('/artworks');
+        $response = $this->get(route('artworks.index'));
 
         $response->assertRedirect(route('setup.create'));
     }
