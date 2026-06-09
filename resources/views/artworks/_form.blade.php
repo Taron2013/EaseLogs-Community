@@ -2,6 +2,13 @@
     $completedWorkChecked = old('completed_work') !== null
         ? (bool) old('completed_work')
         : ($artwork->exists && $artwork->isCompleted());
+
+    $startDateValue = old('start_date');
+    if ($startDateValue === null) {
+        $startDateValue = $artwork->exists
+            ? $artwork->start_date?->format('Y-m-d')
+            : now()->format('Y-m-d');
+    }
 @endphp
 
 @if ($errors->any())
@@ -24,7 +31,7 @@
 
     <div class="field">
         <label for="start_date">Start date</label>
-        <input type="date" name="start_date" id="start_date" value="{{ old('start_date', $artwork->start_date?->format('Y-m-d')) }}">
+        <input type="date" name="start_date" id="start_date" value="{{ $startDateValue }}">
     </div>
 
     <div class="field field-inline">

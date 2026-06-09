@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\ArtworkIndexFilters;
 use App\Support\ArtworkIndexSearch;
 use App\Support\ArtworkIndexSort;
+use App\Support\ArtworkStartDate;
 use App\Support\DemoMode;
 use App\Services\ArtworkPhotoService;
 use Illuminate\Http\RedirectResponse;
@@ -155,6 +156,10 @@ class ArtworkController extends Controller
     private function prepareArtworkData(array $data, ?User $user, ?Artwork $artwork = null): array
     {
         unset($data['photo'], $data['completed_work'], $data['confirm_completed_photo_upload']);
+
+        if ($artwork === null) {
+            $data = ArtworkStartDate::applyCreateDefault($data);
+        }
 
         $data['user_id'] = $user?->id ?? $artwork?->user_id;
 
