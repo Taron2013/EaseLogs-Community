@@ -18,10 +18,10 @@
 
     <dl class="detail-grid">
         <dt>Start date</dt>
-        <dd>{{ $artwork->start_date?->format('Y-m-d') ?? '—' }}</dd>
+        <dd>{{ $artwork->formattedDisplayStartDate() }}</dd>
 
         <dt>Completed date</dt>
-        <dd>{{ $artwork->completed_date?->format('Y-m-d') ?? '—' }}</dd>
+        <dd>{{ $artwork->formattedDisplayCompletedDate() }}</dd>
 
         <dt>Artwork type</dt>
         <dd>{{ $artwork->artwork_type ?? '—' }}</dd>

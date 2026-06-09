@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 class Artwork extends Model
 {
@@ -99,5 +100,47 @@ class Artwork extends Model
         $depth = $this->depth ?? '?';
 
         return "{$height} × {$width} × {$depth} {$this->dimension_unit}";
+    }
+
+    /**
+     * Effective start date for display when start_date is unset on older/imported records.
+     */
+    public function displayStartDate(): Carbon
+    {
+        if ($this->start_date !== null) {
+            return $this->start_date->copy();
+        }
+
+        if ($this->completed_date !== null) {
+            return $this->completed_date->copy();
+        }
+
+        return ($this->created_at ?? now())->copy()->startOfDay();
+    }
+
+    public function formattedDisplayStartDate(): string
+    {
+        return $this->displayStartDate()->format('Y-m-d');
+    }
+
+    /**
+     * Default value for the start_date input on create/edit forms.
+     */
+    public function formStartDateValue(): string
+    {
+        if ($this->start_date !== null) {
+            return $this->start_date->format('Y-m-d');
+        }
+
+        if (! $this->exists) {
+            return now()->format('Y-m-d');
+        }
+
+        return $this->formattedDisplayStartDate();
+    }
+
+    public function formattedDisplayCompletedDate(): string
+    {
+        return $this->completed_date?->format('Y-m-d') ?? 'In Progress';
     }
 }

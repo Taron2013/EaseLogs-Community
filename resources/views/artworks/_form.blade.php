@@ -5,9 +5,7 @@
 
     $startDateValue = old('start_date');
     if ($startDateValue === null) {
-        $startDateValue = $artwork->exists
-            ? $artwork->start_date?->format('Y-m-d')
-            : now()->format('Y-m-d');
+        $startDateValue = $artwork->formStartDateValue();
     }
 @endphp
 

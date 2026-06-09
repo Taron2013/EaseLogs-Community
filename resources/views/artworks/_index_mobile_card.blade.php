@@ -33,11 +33,11 @@
         </div>
         <div>
             <dt>Start date</dt>
-            <dd>{{ $artwork->start_date?->format('Y-m-d') ?? '—' }}</dd>
+            <dd>{{ $artwork->formattedDisplayStartDate() }}</dd>
         </div>
         <div>
             <dt>Completed date</dt>
-            <dd>{{ $artwork->completed_date?->format('Y-m-d') ?? '—' }}</dd>
+            <dd>{{ $artwork->formattedDisplayCompletedDate() }}</dd>
         </div>
         <div>
             <dt>Updated</dt>

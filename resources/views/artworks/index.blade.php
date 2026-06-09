@@ -200,8 +200,8 @@
                         <td>{{ $artwork->artwork_type ?? '—' }}</td>
                         <td>{{ $artwork->medium ?? '—' }}</td>
                         <td>{{ $artwork->formattedDimensions() ?? '—' }}</td>
-                        <td>{{ $artwork->start_date?->format('Y-m-d') ?? '—' }}</td>
-                        <td>{{ $artwork->completed_date?->format('Y-m-d') ?? '—' }}</td>
+                        <td>{{ $artwork->formattedDisplayStartDate() }}</td>
+                        <td>{{ $artwork->formattedDisplayCompletedDate() }}</td>
                         <td>{{ $artwork->updated_at?->format('Y-m-d') }}</td>
                         <td class="artwork-actions">
                             @include('artworks._index_artwork_actions', ['artwork' => $artwork])

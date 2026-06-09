@@ -29,10 +29,15 @@ readonly PROD="/var/www/projects/easelogs"
 readonly DEPLOY_USER="${SUDO_USER:-${USER}}"
 readonly DEPLOY_GROUP="http"
 readonly DEPLOY_URL="https://easelogs.local"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# shellcheck source=lib/redeploy-validation.sh
+source "$SCRIPT_DIR/lib/redeploy-validation.sh"
 
 # Application paths that must exist in source and on easelogs.local after sync.
 readonly -a REQUIRED_DEPLOY_PATHS=(
   "scripts/redeploy-local.sh"
+  "scripts/lib/redeploy-validation.sh"
   "resources/views/artworks/index.blade.php"
   "resources/views/artworks/pagination.blade.php"
   "resources/views/vendor/pagination/easelogs.blade.php"
@@ -49,6 +54,10 @@ step() {
 die() {
   echo "ERROR: $1" >&2
   exit 1
+}
+
+warn() {
+  echo "WARNING: $1" >&2
 }
 
 print_banner() {
@@ -125,43 +134,13 @@ verify_tree_paths() {
 }
 
 sync_deploy_scripts() {
-  step "Sync scripts/ (redeploy + local helpers)"
-  mkdir -p "$PROD/scripts"
-  rsync -av \
-    --include='*.sh' \
-    --include='README*' \
-    --exclude='*' \
-    "$DEV/scripts/" "$PROD/scripts/"
-  chmod +x "$PROD/scripts/"*.sh 2>/dev/null || true
-
+  step "Sync scripts/ (redeploy + validation helpers)"
+  redeploy_sync_scripts_with_lib "$DEV" "$PROD"
   echo "    Scripts on deploy target:"
   for script in "$PROD/scripts/"*.sh; do
     [[ -f "$script" ]] || continue
     echo "      - $script"
   done
-}
-
-ensure_public_storage_symlink() {
-  local expected current
-
-  expected="$(readlink -f "$PROD/storage/app/public")"
-
-  if [[ -L "$PROD/public/storage" ]]; then
-    current="$(readlink -f "$PROD/public/storage" 2>/dev/null || true)"
-    if [[ -n "$current" && "$current" == "$expected" ]]; then
-      echo "    public/storage symlink OK -> $current"
-      return 0
-    fi
-    echo "    Removing incorrect public/storage symlink (was: ${current:-unresolvable})"
-    rm -f "$PROD/public/storage"
-  elif [[ -e "$PROD/public/storage" ]]; then
-    echo "    Removing non-symlink public/storage entry"
-    rm -rf "$PROD/public/storage"
-  fi
-
-  php artisan storage:link
-  current="$(readlink -f "$PROD/public/storage" 2>/dev/null || true)"
-  echo "    public/storage symlink -> ${current:-storage/app/public}"
 }
 
 run_database_migrations() {
@@ -179,13 +158,37 @@ run_database_migrations() {
       php artisan migrate:fresh --force
     fi
 
-    ensure_public_storage_symlink
+    redeploy_ensure_public_storage_symlink "$PROD"
 
     php artisan optimize:clear
     php artisan config:clear
     php artisan route:clear
     php artisan view:clear
   )
+}
+
+rsync_application_code() {
+  step "Sync application code (rsync)"
+  echo "    Source:  $DEV"
+  echo "    Target:  $PROD"
+  echo "    Synced: app/, resources/views/** (including resources/views/vendor/), routes/, config/, etc."
+  echo "    Preserved: .env, database/database.sqlite, storage/app/public/"
+  echo "    Excluded: /vendor/ (Composer root only), node_modules/, compiled cache/sessions/views"
+
+  rsync -av --delete \
+    --exclude=".git" \
+    --exclude="node_modules" \
+    --exclude="/vendor/" \
+    --exclude=".env" \
+    --exclude="database/database.sqlite" \
+    --exclude="public/storage" \
+    --exclude="public/hot" \
+    --exclude="storage/logs/" \
+    --exclude="storage/framework/cache/" \
+    --exclude="storage/framework/sessions/" \
+    --exclude="storage/framework/views/" \
+    --exclude="storage/app/public/" \
+    "$DEV/" "$PROD/"
 }
 
 if [[ ! -f artisan ]]; then
@@ -217,10 +220,6 @@ if [[ "$DB_CHOICE" == "2" ]]; then
   confirm_database_reset
 fi
 
-step "Redeploy EaseLogs to local intranet"
-echo "    Source:  $DEV"
-echo "    Target:  $PROD"
-echo "    Always preserved: .env, storage/app/public uploaded artwork files"
 if [[ "$DB_CHOICE" == "1" ]]; then
   echo "    Database: preserve existing database/database.sqlite"
 else
@@ -230,27 +229,11 @@ fi
 verify_tree_paths "$DEV" "Source tree"
 
 step "Prepare ownership for sync (requires sudo)"
-sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$PROD"
+if ! sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$PROD"; then
+  warn "sudo unavailable — continuing with current ownership on $PROD"
+fi
 
-step "Sync application code (rsync)"
-echo "    Synced: app/, resources/views/, routes/, config/, database/migrations/, public/build assets source, etc."
-echo "    Preserved on target: .env, database/database.sqlite, storage/app/public uploads"
-echo "    Excluded from overwrite: Composer vendor/ (root only), node_modules/, compiled views/cache/sessions"
-rsync -av --delete \
-  --exclude=".git" \
-  --exclude="node_modules" \
-  --exclude="/vendor/" \
-  --exclude=".env" \
-  --exclude="database/database.sqlite" \
-  --exclude="public/storage" \
-  --exclude="public/hot" \
-  --exclude="storage/logs/" \
-  --exclude="storage/framework/cache/" \
-  --exclude="storage/framework/sessions/" \
-  --exclude="storage/framework/views/" \
-  --exclude="storage/app/public/" \
-  "$DEV/" "$PROD/"
-
+rsync_application_code
 sync_deploy_scripts
 verify_tree_paths "$PROD" "Deploy tree"
 
@@ -273,14 +256,12 @@ fi
 
 run_database_migrations
 
-step "Fix permissions for nginx/php-fpm (requires sudo)"
-sudo chown -R "${DEPLOY_USER}:${DEPLOY_GROUP}" "$PROD/storage" "$PROD/bootstrap/cache" "$PROD/database"
-sudo find "$PROD/storage" "$PROD/bootstrap/cache" -type d -exec chmod 775 {} \;
-sudo find "$PROD/storage" "$PROD/bootstrap/cache" -type f -exec chmod 664 {} \;
-sudo chmod 775 "$PROD/database"
-if [[ -f "$PROD/database/database.sqlite" ]]; then
-  sudo chmod 664 "$PROD/database/database.sqlite"
-fi
+redeploy_run_post_validation \
+  "$PROD" \
+  "$DEV" \
+  "Community Edition" \
+  "$DEPLOY_URL/login" \
+  "$DEPLOY_URL/artworks"
 
 step "Redeploy complete"
 echo "    Open: $DEPLOY_URL/artworks"
@@ -290,8 +271,6 @@ if [[ -x "$PROD/scripts/community-edition.sh" ]]; then
 fi
 if [[ "$DB_CHOICE" == "1" ]]; then
   echo "    Deploy .env, SQLite data, and storage/app/public uploads were preserved."
-  echo "    public/storage symlink was verified."
 else
   echo "    Deploy .env and storage/app/public were preserved; database was reset."
-  echo "    public/storage symlink was verified."
 fi
