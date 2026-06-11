@@ -40,7 +40,7 @@ This install uses its own:
 Point `easelogs.local` at your workstation’s LAN IP, for example:
 
 ```text
-192.168.50.3 easelogs.local
+192.168.x.x easelogs.local
 ```
 
 ---
