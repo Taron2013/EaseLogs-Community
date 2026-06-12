@@ -29,19 +29,36 @@ This install uses its own:
 
 ## DNS / hosts
 
-### Workstation
+Local HTTPS uses **three separate DNS roles**. Do not point all of them at the same address.
+
+| Role | Where | Typical value |
+|------|--------|----------------|
+| **PC browser** | `/etc/hosts` | `127.0.0.1 easelogs.local` → local nginx |
+| **LAN clients (phones/tablets)** | Router DHCP DNS or Wi‑Fi DNS | `<WORKSTATION_LAN_IP>` → dnsmasq on the workstation |
+| **PC system resolver** | `/etc/resolv.conf` (via NetworkManager) | `127.0.0.1` → local dnsmasq (not the Ethernet LAN IP) |
+| **dnsmasq upstream (internet)** | `/etc/dnsmasq.d/upstream.conf` | **Required** — router + public fallbacks (`server=` lines). Without this file, the workstation loses internet DNS when using local dnsmasq. See [LOCAL_OPS_ROTATION.md](LOCAL_OPS_ROTATION.md#dnsmasq-upstream-required-for-internet-dns) |
+
+**Privacy:** Do not commit your actual LAN IP into this repository. Keep live values in local system files, router admin, or device settings only.
+
+### Workstation `/etc/hosts`
 
 ```text
 127.0.0.1 easelogs.local
 ```
 
+Use loopback on the PC. Do not put the workstation LAN IP here for browser use.
+
 ### Phone / tablet (same LAN)
 
-Point `easelogs.local` at your workstation’s LAN IP, for example:
+Point `easelogs.local` at your workstation’s LAN IP (from `ip -4 addr`, your router’s DHCP client list, or a static reservation you configure). Replace `192.168.x.x` with that address:
 
 ```text
 192.168.x.x easelogs.local
 ```
+
+On iOS, `.local` may still prefer **mDNS** over router DNS. If Safari shows “server not found”, see [LOCAL_OPS_ROTATION.md](LOCAL_OPS_ROTATION.md) (iOS / `.local` notes) or use the public demo.
+
+For LAN IP changes, dnsmasq upstream, mkcert rotation, and mobile trust, see [LOCAL_OPS_ROTATION.md](LOCAL_OPS_ROTATION.md).
 
 ---
 
@@ -96,6 +113,11 @@ Should resolve to that install’s `storage/app/public`.
 | 502 / blank page | nginx error log, php-fpm running |
 | Wrong site | `/etc/hosts` and nginx `server_name easelogs.local` |
 | After DB reset | Complete `/setup` again at `https://easelogs.local` |
+| **Internet stops resolving on workstation** | `/etc/dnsmasq.d/upstream.conf` — must have `server=` lines; see [LOCAL_OPS_ROTATION.md](LOCAL_OPS_ROTATION.md#dnsmasq-upstream-required-for-internet-dns) |
+| **Phone: server not found** | Router LAN DHCP DNS → workstation; dnsmasq `listen-address=`; reconnect Wi‑Fi |
+| **Phone: certificate warning** | Install mkcert `rootCA.pem` + enable full trust (iOS Certificate Trust Settings) |
+| **PC: `.local` resolves wrong** | `/etc/nsswitch.conf` — put `files` before `mdns_minimal` |
+| dnsmasq log: `ignoring nameserver … local interface` | Usually harmless if `upstream.conf` defines `server=`; PC `resolv.conf` should use `127.0.0.1`, not the LAN IP — see rotation doc |
 
 ---
 

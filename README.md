@@ -187,7 +187,8 @@ Optional verification after deploy:
 ./scripts/verify-local-deployments.sh
 ```
 
-Full nginx, hosts, and TLS notes: [docs/LOCAL_INTRANET_DEPLOYMENT.md](docs/LOCAL_INTRANET_DEPLOYMENT.md).
+Full nginx, hosts, DNS, and TLS notes: [docs/LOCAL_INTRANET_DEPLOYMENT.md](docs/LOCAL_INTRANET_DEPLOYMENT.md).  
+LAN IP / dnsmasq / mkcert rotation: [docs/LOCAL_OPS_ROTATION.md](docs/LOCAL_OPS_ROTATION.md).
 
 ## Development roadmap
 
