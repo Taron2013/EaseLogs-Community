@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ArtworkCsvImportRequest;
 use App\Models\Artwork;
 use App\Services\ArtworkCsvService;
+use App\Support\ArtworkPhotoBulkImport\PhotoImportUploadEnvironment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -17,7 +18,9 @@ class ArtworkCsvController extends Controller
 
     public function importExport(): View
     {
-        return view('artworks.import-export');
+        return view('artworks.import-export', [
+            'photoImportUpload' => PhotoImportUploadEnvironment::viewData(),
+        ]);
     }
 
     public function export(): StreamedResponse

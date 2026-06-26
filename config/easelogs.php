@@ -65,6 +65,24 @@ return [
 
     'photo_max_kb' => (int) env('EASELOGS_PHOTO_MAX_KB', 10240),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Bulk photo import ZIP upload limit (Community Edition)
+    |--------------------------------------------------------------------------
+    |
+    | Maximum mapping ZIP size in megabytes. Community Edition defaults to 4096
+    | MB (4 GB). Values of 0 or less fall back to the default — CE never disables
+    | the Laravel app-level limit. Nginx and PHP may still reject larger uploads
+    | before Laravel sees the request (HTTP 413).
+    |
+    */
+
+    'photo_import_max_upload_mb' => (static function (): int {
+        $mb = (int) env('EASELOGS_PHOTO_IMPORT_MAX_UPLOAD_MB', 4096);
+
+        return $mb > 0 ? $mb : 4096;
+    })(),
+
     'photo_mimes' => ['jpeg', 'jpg', 'png', 'webp'],
 
     /*

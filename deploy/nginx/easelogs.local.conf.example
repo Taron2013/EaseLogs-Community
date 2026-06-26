@@ -1,0 +1,55 @@
+# EaseLogs Community Edition — local intranet nginx example
+#
+# Install:
+#   sudo cp deploy/nginx/easelogs.local.conf.example /etc/nginx/conf.d/easelogs.local.conf
+#   sudo nginx -t && sudo systemctl reload nginx
+#
+# TLS (mkcert example):
+#   mkcert easelogs.local
+#   sudo mkdir -p /etc/nginx/certs/easelogs
+#   sudo install -m 644 easelogs.local.pem /etc/nginx/certs/easelogs/
+#   sudo install -m 600 easelogs.local-key.pem /etc/nginx/certs/easelogs/
+#   Adjust ssl_certificate paths below to match your cert filenames.
+#
+# Hosts (workstation):
+#   127.0.0.1 easelogs.local
+#
+# Bulk photo import: client_max_body_size must be at least 4096M for the default
+# 4 GB CE ZIP limit. Match PHP upload_max_filesize and post_max_size.
+
+server {
+    listen 80;
+    server_name easelogs.local;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name easelogs.local;
+    client_max_body_size 4096M;
+
+    ssl_certificate /etc/nginx/certs/easelogs/easelogs.local+1.pem;
+    ssl_certificate_key /etc/nginx/certs/easelogs/easelogs.local+1-key.pem;
+
+    root /var/www/projects/easelogs/public;
+    index index.php index.html;
+
+    access_log /var/log/nginx/easelogs.access.log;
+    error_log /var/log/nginx/easelogs.error.log;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php-fpm/php-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_index index.php;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}

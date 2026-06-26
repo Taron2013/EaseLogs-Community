@@ -77,6 +77,18 @@ See [README.md](../README.md#local-intranet-redeploy-manjaro) for preserve vs re
 
 The script syncs your working tree to `/var/www/projects/easelogs`, runs Composer and `npm run build`, repairs `public/storage`, and fixes permissions for php-fpm.
 
+### Nginx upload size (bulk photo import)
+
+Community Edition allows ZIP imports up to **4 GB** by default. Local nginx must allow at least that much or uploads fail with **413 Request Entity Too Large** before Laravel runs.
+
+```bash
+sudo cp deploy/nginx/easelogs.local.conf.example /etc/nginx/conf.d/easelogs.local.conf
+# Edit cert paths if needed, then:
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+The example sets `client_max_body_size 4096M`. Also raise PHP `upload_max_filesize` and `post_max_size` to match (for example in `/etc/php/php.ini` or your php-fpm pool), then restart php-fpm.
+
 ---
 
 ## Verification
@@ -113,6 +125,7 @@ Should resolve to that install’s `storage/app/public`.
 | 502 / blank page | nginx error log, php-fpm running |
 | Wrong site | `/etc/hosts` and nginx `server_name easelogs.local` |
 | After DB reset | Complete `/setup` again at `https://easelogs.local` |
+| **413 on bulk photo ZIP** | Nginx `client_max_body_size` (≥ 4096M); PHP `upload_max_filesize` / `post_max_size`; see [BULK_PHOTO_IMPORT.md](BULK_PHOTO_IMPORT.md) |
 | **Internet stops resolving on workstation** | `/etc/dnsmasq.d/upstream.conf` — must have `server=` lines; see [LOCAL_OPS_ROTATION.md](LOCAL_OPS_ROTATION.md#dnsmasq-upstream-required-for-internet-dns) |
 | **Phone: server not found** | Router LAN DHCP DNS → workstation; dnsmasq `listen-address=`; reconnect Wi‑Fi |
 | **Phone: certificate warning** | Install mkcert `rootCA.pem` + enable full trust (iOS Certificate Trust Settings) |

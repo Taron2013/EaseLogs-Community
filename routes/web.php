@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ArtworkController;
 use App\Http\Controllers\ArtworkCsvController;
+use App\Http\Controllers\ArtworkPhotoBulkImportController;
 use App\Http\Controllers\DemoLoginController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProfileController;
@@ -50,6 +51,25 @@ Route::middleware(['setup.complete', 'auth'])->group(function (): void {
     Route::post('artworks/import/csv', [ArtworkCsvController::class, 'import'])
         ->middleware('restrict.demo:imports')
         ->name('artworks.import.csv');
+
+    Route::post('artworks/import/photos/preview', [ArtworkPhotoBulkImportController::class, 'preview'])
+        ->middleware('restrict.demo:imports')
+        ->name('artworks.photo-bulk-import.preview');
+    Route::get('artworks/import/photos/preview/{token}', [ArtworkPhotoBulkImportController::class, 'showPreview'])
+        ->name('artworks.photo-bulk-import.preview.show');
+    Route::get('artworks/import/photos/preview/{token}/thumb/{rowKey}', [ArtworkPhotoBulkImportController::class, 'thumbnail'])
+        ->name('artworks.photo-bulk-import.preview.thumb');
+    Route::get('artworks/import/photos/preview/{token}/search', [ArtworkPhotoBulkImportController::class, 'searchArtworks'])
+        ->name('artworks.photo-bulk-import.preview.search');
+    Route::post('artworks/import/photos/preview/{token}/resolve', [ArtworkPhotoBulkImportController::class, 'resolveMatch'])
+        ->name('artworks.photo-bulk-import.preview.resolve');
+    Route::post('artworks/import/photos/preview/{token}/undo-resolve', [ArtworkPhotoBulkImportController::class, 'undoResolve'])
+        ->name('artworks.photo-bulk-import.preview.undo-resolve');
+    Route::post('artworks/import/photos/apply', [ArtworkPhotoBulkImportController::class, 'apply'])
+        ->middleware('restrict.demo:uploads')
+        ->name('artworks.photo-bulk-import.apply');
+    Route::get('artworks/import/photos/discard/{token}', [ArtworkPhotoBulkImportController::class, 'discard'])
+        ->name('artworks.photo-bulk-import.discard');
 
     Route::delete('artworks/bulk-delete', [ArtworkController::class, 'bulkDestroy'])
         ->middleware('restrict.demo:deletes')

@@ -21,6 +21,7 @@ class ArtworkPhoto extends Model
         'original_filename',
         'mime_type',
         'file_size',
+        'file_hash',
         'width',
         'height',
         'caption',

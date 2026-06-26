@@ -62,3 +62,4 @@ Homestead.yaml
 
 # Local dev scripts (not shipped with Community Edition)
 /scripts/community-edition.sh
+/scripts/execute-phase1-primary-repos.sh

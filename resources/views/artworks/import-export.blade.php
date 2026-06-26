@@ -8,5 +8,10 @@
         Import or export artwork metadata as CSV. This does not move photos — add images from each artwork’s create or edit screen.
     </p>
 
+    @if ($errors->has('photo_zip'))
+        <div class="flash flash-error" role="alert">{{ $errors->first('photo_zip') }}</div>
+    @endif
+
     @include('artworks._csv_import_export')
+    @include('artworks._photo_bulk_import')
 @endsection
