@@ -49,6 +49,8 @@ class ArtworkIndexPaginationTest extends TestCase
         $response->assertSee('easelogs-pagination', false);
         $response->assertSee('Previous', false);
         $response->assertSee('Next', false);
+        $response->assertDontSee('&laquo;', false);
+        $response->assertDontSee('&raquo;', false);
         $response->assertSee('page=2', false);
         $response->assertDontSee('<svg', false);
     }

@@ -23,16 +23,13 @@
         <dt>Completed date</dt>
         <dd>{{ $artwork->formattedDisplayCompletedDate() }}</dd>
 
-        <dt>Artwork type</dt>
-        <dd>{{ $artwork->artwork_type ?? '—' }}</dd>
-
         <dt>Medium</dt>
         <dd>{{ $artwork->medium ?? '—' }}</dd>
 
         <dt>Dimensions</dt>
         <dd>{{ $artwork->formattedDimensions() ?? '—' }}</dd>
 
-        <dt>Notes</dt>
+        <dt>Private notes (studio only)</dt>
         <dd>{{ $artwork->notes ?: '—' }}</dd>
 
         <dt>Created</dt>
@@ -41,6 +38,8 @@
         <dt>Updated</dt>
         <dd>{{ $artwork->updated_at?->format('Y-m-d H:i') }}</dd>
     </dl>
+
+    @include('artworks._publishing_profile_show', ['artwork' => $artwork])
 
     @unless ($easelogsDemo['blocks_deletes'] ?? false)
         <form method="POST" action="{{ route('artworks.destroy', $artwork) }}" style="margin-top:1.5rem;"

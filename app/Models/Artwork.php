@@ -6,6 +6,7 @@ use Database\Factories\ArtworkFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
@@ -31,7 +32,6 @@ class Artwork extends Model
         'title',
         'start_date',
         'completed_date',
-        'artwork_type',
         'medium',
         'height',
         'width',
@@ -62,6 +62,30 @@ class Artwork extends Model
     public function photos(): HasMany
     {
         return $this->hasMany(ArtworkPhoto::class);
+    }
+
+    /**
+     * @return BelongsToMany<ArtworkTag, $this>
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(ArtworkTag::class, 'artwork_tag');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function tagNames(): array
+    {
+        return $this->tags()->orderBy('name')->pluck('name')->all();
+    }
+
+    /**
+     * @return HasOne<ArtworkPublishingProfile, $this>
+     */
+    public function publishingProfile(): HasOne
+    {
+        return $this->hasOne(ArtworkPublishingProfile::class);
     }
 
     public function latestPhoto(): HasOne

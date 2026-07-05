@@ -295,7 +295,7 @@ Use **quick filter** pills (for example in progress, completed, untitled, missin
 Approved columns:
 
 ```text
-title,start_date,completed_date,artwork_type,medium,height,width,depth,dimension_unit,notes
+title,start_date,completed_date,medium,height,width,depth,dimension_unit,notes
 ```
 
 Dates must be `YYYY-MM-DD`. Unsupported column names (inventory, photos, etc.) are rejected with an error. Add photos manually after import.

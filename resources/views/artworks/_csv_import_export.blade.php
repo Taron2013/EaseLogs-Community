@@ -10,7 +10,7 @@
     <h2 style="font-size:1rem;margin:0 0 0.5rem;">Import CSV</h2>
     <p class="field-hint" style="margin:0 0 0.75rem;">
         Metadata only. Photos are not included in CSV import or export. Include any subset of approved columns
-        (title, start_date, completed_date, artwork_type, medium, height, width, depth, dimension_unit, notes).
+        (title, start_date, completed_date, medium, height, width, depth, dimension_unit, notes).
         Extra columns are ignored. Dates accept common formats (YYYY-MM-DD, MM/DD/YYYY, written dates, ISO date-times); export uses YYYY-MM-DD.
         Unsupported fields (inventory, photos, and similar) are rejected.
     </p>

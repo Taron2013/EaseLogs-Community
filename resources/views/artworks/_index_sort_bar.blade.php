@@ -1,4 +1,4 @@
-@props(['filters', 'search', 'sort'])
+@props(['filters', 'search', 'sort', 'listingRoute' => 'artworks.index'])
 
 @php
     $listQuery = array_merge($filters->queryParams(), $search->queryParams());
@@ -7,11 +7,11 @@
 <section class="artwork-sort-bar" aria-label="Sort artworks">
     <p class="artwork-filters-label">Sort</p>
     <div class="artwork-sort-quick">
-        <a href="{{ route('artworks.index', $listQuery) }}"
+        <a href="{{ route($listingRoute, $listQuery) }}"
            class="filter-pill{{ $sort->usesDefaultListing() ? ' is-active' : '' }}">Recently updated</a>
     </div>
 
-    <form method="GET" action="{{ route('artworks.index') }}" class="artwork-sort-fields artwork-sort-fields-mobile">
+    <form method="GET" action="{{ route($listingRoute) }}" class="artwork-sort-fields artwork-sort-fields-mobile">
         @foreach ($filters->queryParams() as $name => $value)
             <input type="hidden" name="{{ $name }}" value="{{ $value }}">
         @endforeach
@@ -24,7 +24,6 @@
             <select name="sort" id="mobile_sort_column">
                 <option value="" @selected($sort->usesDefaultListing())>Recently updated</option>
                 <option value="title" @selected($sort->column() === 'title')>Title</option>
-                <option value="artwork_type" @selected($sort->column() === 'artwork_type')>Artwork type</option>
                 <option value="medium" @selected($sort->column() === 'medium')>Medium</option>
                 <option value="dimensions" @selected($sort->column() === 'dimensions')>Dimensions</option>
                 <option value="start_date" @selected($sort->column() === 'start_date')>Start date</option>

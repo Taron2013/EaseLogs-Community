@@ -50,15 +50,7 @@
         <p class="field-hint">Only used when this artwork is marked as completed.</p>
     </div>
 
-    <div class="field">
-        <label for="artwork_type">Artwork type</label>
-        <input type="text" name="artwork_type" id="artwork_type" autocomplete="off" placeholder="e.g. Painting, Drawing, Sculpture" value="{{ old('artwork_type', $artwork->artwork_type) }}">
-    </div>
-
-    <div class="field">
-        <label for="medium">Medium</label>
-        <input type="text" name="medium" id="medium" autocomplete="off" placeholder="e.g. Oil on canvas" value="{{ old('medium', $artwork->medium) }}">
-    </div>
+    @include('artworks._medium_field')
 
     <div class="field">
         <label for="height">Height</label>
@@ -86,8 +78,31 @@
     ])
 
     <div class="field">
-        <label for="notes">Notes</label>
-        <textarea name="notes" id="notes" rows="4" placeholder="Optional notes about this artwork">{{ old('notes', $artwork->notes) }}</textarea>
+        <label for="notes">Private notes (studio only)</label>
+        <textarea name="notes" id="notes" rows="4" placeholder="Internal notes — not used for publishing">{{ old('notes', $artwork->notes) }}</textarea>
+        <p class="field-hint">For your studio records only. Use the Publishing section for public-facing copy.</p>
+    </div>
+
+    <div class="field">
+        <label for="tags">Tags</label>
+        <input
+            type="text"
+            name="tags"
+            id="tags"
+            value="{{ old('tags', $artwork->exists ? $artwork->tags->pluck('name')->join(', ') : '') }}"
+            list="artwork-tag-suggestions"
+            maxlength="2000"
+            placeholder="Comma-separated, e.g. Abstract, Landscape"
+        >
+        <datalist id="artwork-tag-suggestions">
+            @foreach (\App\Models\ArtworkTag::query()->where('user_id', auth()->id())->orderBy('name')->pluck('name') as $tagName)
+                <option value="{{ $tagName }}"></option>
+            @endforeach
+            @foreach (\App\Services\ArtworkTagService::EXAMPLE_TAGS as $example)
+                <option value="{{ $example }}"></option>
+            @endforeach
+        </datalist>
+        <p class="field-hint">Optional. User-defined tags for filtering and organization.</p>
     </div>
 </div>
 

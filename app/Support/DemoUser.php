@@ -91,7 +91,6 @@ final class DemoUser
         $samples = [
             [
                 'title' => 'Morning Light',
-                'artwork_type' => 'Painting',
                 'medium' => 'Oil on canvas',
                 'height' => 24,
                 'width' => 18,
@@ -101,7 +100,6 @@ final class DemoUser
             ],
             [
                 'title' => 'Harbor Sketch',
-                'artwork_type' => 'Drawing',
                 'medium' => 'Graphite on paper',
                 'height' => 11,
                 'width' => 14,
@@ -111,7 +109,6 @@ final class DemoUser
             ],
             [
                 'title' => 'Studio Still Life',
-                'artwork_type' => 'Painting',
                 'medium' => 'Acrylic',
                 'height' => 16,
                 'width' => 20,

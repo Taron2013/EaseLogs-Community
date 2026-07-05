@@ -26,13 +26,13 @@ class ArtworkRequest extends FormRequest
                     ['after_or_equal:start_date']
                 ),
             ],
-            'artwork_type' => ['nullable', 'string', 'max:255'],
             'medium' => ['nullable', 'string', 'max:255'],
             'height' => ['nullable', 'numeric', 'min:0'],
             'width' => ['nullable', 'numeric', 'min:0'],
             'depth' => ['nullable', 'numeric', 'min:0'],
             'dimension_unit' => ['nullable', 'string', 'max:10'],
             'notes' => ['nullable', 'string'],
+            'tags' => ['nullable', 'string', 'max:2000'],
             'confirm_completed_photo_upload' => ['nullable', 'boolean'],
             'photo' => [
                 'nullable',

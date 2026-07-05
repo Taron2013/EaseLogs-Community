@@ -46,7 +46,7 @@ class ArtworkIndexSearch
     /**
      * @param  Builder<\App\Models\Artwork>  $query
      */
-    public function apply(Builder $query): void
+    public function apply(Builder $query, ?int $userId = null): void
     {
         if ($this->term === null) {
             return;
@@ -54,9 +54,23 @@ class ArtworkIndexSearch
 
         $like = '%'.addcslashes($this->term, '%_\\').'%';
 
-        $query->where(function (Builder $builder) use ($like): void {
+        $query->where(function (Builder $builder) use ($like, $userId): void {
             $builder->where('title', 'like', $like)
                 ->orWhere('notes', 'like', $like);
+
+            if ($userId !== null) {
+                $builder->orWhereHas('tags', function (Builder $tagQuery) use ($userId, $like): void {
+                    $tagQuery->where('user_id', $userId)
+                        ->where('name', 'like', $like);
+                });
+            }
+
+            $builder->orWhereHas('publishingProfile', function (Builder $profileQuery) use ($like): void {
+                $profileQuery->where('short_description', 'like', $like)
+                    ->orWhere('product_description', 'like', $like)
+                    ->orWhere('story_inspiration', 'like', $like)
+                    ->orWhere('materials_process', 'like', $like);
+            });
         });
     }
 

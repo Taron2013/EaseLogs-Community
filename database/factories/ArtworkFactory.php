@@ -23,7 +23,6 @@ class ArtworkFactory extends Factory
             'title' => fake()->words(3, true),
             'start_date' => fake()->optional()->date(),
             'completed_date' => fake()->optional()->date(),
-            'artwork_type' => fake()->optional()->randomElement(['Painting', 'Drawing', 'Sculpture', 'Print']),
             'medium' => fake()->optional()->randomElement(['Oil on canvas', 'Acrylic', 'Watercolor']),
             'height' => fake()->optional()->randomFloat(2, 4, 48),
             'width' => fake()->optional()->randomFloat(2, 4, 48),

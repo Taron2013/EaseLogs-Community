@@ -64,6 +64,7 @@ print_banner() {
   echo ""
   echo "============================================================"
   echo " EaseLogs LOCAL intranet redeploy"
+  echo " Source:  ${DEV:-<project root>}"
   echo " Target:  $PROD"
   echo " URL:     $DEPLOY_URL"
   echo "============================================================"
@@ -133,6 +134,61 @@ verify_tree_paths() {
   echo "    $label: required application paths present (${#REQUIRED_DEPLOY_PATHS[@]} checked)"
 }
 
+# Paths that must not exist on the Community deploy tree after rsync --delete.
+readonly -a FORBIDDEN_COMMUNITY_DEPLOY_PATHS=(
+  "app/Http/Controllers/ArtworkBulkUpdateController.php"
+  "app/Services/ArtworkBulkUpdateService.php"
+  "app/Http/Requests/ArtworkBulkUpdateRequest.php"
+  "resources/views/artworks/bulk-update.blade.php"
+  "app/Http/Controllers/SupplyDashboardController.php"
+)
+
+verify_community_deploy_boundary() {
+  local root="$1"
+  local stale=()
+
+  for path in "${FORBIDDEN_COMMUNITY_DEPLOY_PATHS[@]}"; do
+    if [[ -e "$root/$path" ]]; then
+      stale+=("$path")
+    fi
+  done
+
+  if ((${#stale[@]} > 0)); then
+    echo "    Stale files still present under $root (rsync --delete did not remove them?):" >&2
+    printf '      - %s\n' "${stale[@]}" >&2
+    die "Community deploy boundary check failed. Redeploy from the Community source tree: $DEV"
+  fi
+
+  if grep -q "artworks/bulk-update" "$root/routes/web.php" 2>/dev/null; then
+    die "Community deploy routes still reference artworks/bulk-update. Sync from Community source: $DEV"
+  fi
+
+  echo "    Community deploy boundary: no stale Pro/bulk-update artifacts (${#FORBIDDEN_COMMUNITY_DEPLOY_PATHS[@]} checked)"
+}
+
+# Refuse to sync Pro (or wrong) source trees into the Community deploy path.
+assert_community_source_tree() {
+  if [[ -f "$DEV/app/Http/Controllers/SupplyDashboardController.php" ]]; then
+    die "Source looks like EaseLogs-Pro (SupplyDashboardController found). Run redeploy-local.sh only from EaseLogs-Community."
+  fi
+
+  if [[ -f "$DEV/scripts/redeploy-pro-local.sh" && ! -f "$DEV/docs/COMMUNITY_EDITION.md" ]]; then
+    die "Source looks like EaseLogs-Pro (redeploy-pro-local.sh without COMMUNITY_EDITION.md). Use EaseLogs-Community for easelogs.local."
+  fi
+
+  if grep -q "artworks/bulk-update" "$DEV/routes/web.php" 2>/dev/null; then
+    die "Source routes/web.php still defines artworks/bulk-update. Community easelogs.local must deploy from EaseLogs-Community."
+  fi
+
+  for path in "${FORBIDDEN_COMMUNITY_DEPLOY_PATHS[@]}"; do
+    if [[ -e "$DEV/$path" ]]; then
+      die "Source contains forbidden Community path: $path (wrong repository or branch?)"
+    fi
+  done
+
+  echo "    Community source tree: OK ($DEV)"
+}
+
 sync_deploy_scripts() {
   step "Sync scripts/ (redeploy + validation helpers)"
   redeploy_sync_scripts_with_lib "$DEV" "$PROD"
@@ -172,8 +228,9 @@ rsync_application_code() {
   echo "    Source:  $DEV"
   echo "    Target:  $PROD"
   echo "    Synced: app/, resources/views/** (including resources/views/vendor/), routes/, config/, etc."
-  echo "    Preserved: .env, database/database.sqlite, storage/app/public/"
-  echo "    Excluded: /vendor/ (Composer root only), node_modules/, compiled cache/sessions/views"
+  echo "    Mode:   rsync --delete (removes deploy files absent from source)"
+  echo "    Preserved: .env, database/database.sqlite, storage/app/public/, vendor/, node_modules/"
+  echo "    Excluded from sync: compiled storage/framework/{cache,sessions,views}, storage/logs/"
 
   rsync -av --delete \
     --exclude=".git" \
@@ -227,6 +284,7 @@ else
 fi
 
 verify_tree_paths "$DEV" "Source tree"
+assert_community_source_tree
 
 step "Prepare ownership for sync (requires sudo)"
 if ! sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$PROD"; then
@@ -234,6 +292,7 @@ if ! sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$PROD"; then
 fi
 
 rsync_application_code
+verify_community_deploy_boundary "$PROD"
 sync_deploy_scripts
 verify_tree_paths "$PROD" "Deploy tree"
 
@@ -265,7 +324,7 @@ redeploy_run_post_validation \
 
 step "Redeploy complete"
 echo "    Open: $DEPLOY_URL/artworks"
-echo "    Redeploy again from: $PROD/scripts/redeploy-local.sh"
+echo "    Redeploy again from: $DEV/scripts/redeploy-local.sh"
 if [[ -x "$PROD/scripts/community-edition.sh" ]]; then
   echo "    Local dev helper: $PROD/scripts/community-edition.sh (setup|check|test|serve)"
 fi

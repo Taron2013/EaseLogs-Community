@@ -572,7 +572,7 @@ Community Edition can move **metadata only** between spreadsheets and your inven
 ### Approved CSV columns (in order)
 
 ```text
-title,start_date,completed_date,artwork_type,medium,height,width,depth,dimension_unit,notes
+title,start_date,completed_date,medium,height,width,depth,dimension_unit,notes
 ```
 
 These files do **not** support: photos, `user_id`, internal IDs, timestamps, or financial/commercial fields.

@@ -3,6 +3,7 @@
 use App\Http\Controllers\ArtworkController;
 use App\Http\Controllers\ArtworkCsvController;
 use App\Http\Controllers\ArtworkPhotoBulkImportController;
+use App\Http\Controllers\ArtworkPublishingController;
 use App\Http\Controllers\DemoLoginController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProfileController;
@@ -74,6 +75,9 @@ Route::middleware(['setup.complete', 'auth'])->group(function (): void {
     Route::delete('artworks/bulk-delete', [ArtworkController::class, 'bulkDestroy'])
         ->middleware('restrict.demo:deletes')
         ->name('artworks.bulk-delete');
+
+    Route::patch('artworks/{artwork}/publishing', [ArtworkPublishingController::class, 'update'])
+        ->name('artworks.publishing.update');
 
     Route::resource('artworks', ArtworkController::class)
         ->middlewareFor(['store', 'update'], 'restrict.demo:uploads')

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Artwork;
 use App\Models\ArtworkPhoto;
+use App\Models\ArtworkTag;
 use App\Support\ArtworkIndexFilters;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -120,19 +121,6 @@ class ArtworkIndexFilterTest extends TestCase
             ->assertSee('Height Only', false)
             ->assertSee('No Dimensions', false)
             ->assertDontSee('Fully Sized', false);
-    }
-
-    public function test_artwork_type_filter_matches_exact_value(): void
-    {
-        $user = $this->signIn();
-
-        Artwork::factory()->for($user)->create(['title' => 'Oil Piece', 'artwork_type' => 'Painting']);
-        Artwork::factory()->for($user)->create(['title' => 'Clay Piece', 'artwork_type' => 'Sculpture']);
-
-        $this->get(route('artworks.index', ['artwork_type' => 'Painting']))
-            ->assertOk()
-            ->assertSee('Oil Piece', false)
-            ->assertDontSee('Clay Piece', false);
     }
 
     public function test_medium_filter_matches_exact_value(): void
@@ -314,9 +302,54 @@ class ArtworkIndexFilterTest extends TestCase
         $page1->assertSee('page=2', false);
     }
 
+    public function test_has_dimensions_filter_requires_width_and_height(): void
+    {
+        $user = $this->signIn();
+
+        Artwork::factory()->for($user)->create(['title' => 'Sized', 'width' => 10, 'height' => 12, 'depth' => null]);
+        Artwork::factory()->for($user)->create(['title' => 'Partial', 'width' => 10, 'height' => null]);
+
+        $this->get(route('artworks.index', ['filter' => 'has_dimensions']))
+            ->assertOk()
+            ->assertSee('Sized', false)
+            ->assertDontSee('Partial', false);
+    }
+
+    public function test_width_and_height_range_filters_apply(): void
+    {
+        $user = $this->signIn();
+
+        Artwork::factory()->for($user)->create(['title' => 'Small', 'width' => 8, 'height' => 10]);
+        Artwork::factory()->for($user)->create(['title' => 'Large', 'width' => 24, 'height' => 36]);
+
+        $this->get(route('artworks.index', ['width_min' => 20, 'height_min' => 30]))
+            ->assertOk()
+            ->assertSee('Large', false)
+            ->assertDontSee('Small', false);
+    }
+
+    public function test_tag_filter_matches_artwork_with_tag(): void
+    {
+        $user = $this->signIn();
+        $tagged = Artwork::factory()->for($user)->create(['title' => 'Tagged Piece']);
+        Artwork::factory()->for($user)->create(['title' => 'Plain Piece']);
+
+        $tag = ArtworkTag::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Landscape',
+            'normalized_name' => 'landscape',
+        ]);
+        $tagged->tags()->attach($tag);
+
+        $this->get(route('artworks.index', ['tag' => 'Landscape']))
+            ->assertOk()
+            ->assertSee('Tagged Piece', false)
+            ->assertDontSee('Plain Piece', false);
+    }
+
     public function test_filter_class_normalizes_invalid_quick_filter_to_all(): void
     {
-        $filters = new ArtworkIndexFilters('bogus', null, null);
+        $filters = new ArtworkIndexFilters('bogus', null, null, null, null, null, null, null);
 
         $this->assertSame(ArtworkIndexFilters::QUICK_ALL, $filters->quickFilter());
         $this->assertFalse($filters->hasActiveFilters());

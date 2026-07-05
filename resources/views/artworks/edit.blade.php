@@ -16,4 +16,6 @@
             <a href="{{ route('artworks.show', $artwork) }}" class="btn">Cancel</a>
         </div>
     </form>
+
+    @include('artworks._publishing_profile_form', ['artwork' => $artwork])
 @endsection

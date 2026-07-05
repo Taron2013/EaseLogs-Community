@@ -34,6 +34,10 @@ class LocalDeployScriptsTest extends TestCase
             $contents,
         );
         $this->assertStringContainsString('--exclude="/vendor/"', $contents);
+        $this->assertStringContainsString('rsync -av --delete', $contents);
+        $this->assertStringContainsString('verify_community_deploy_boundary', $contents);
+        $this->assertStringContainsString('assert_community_source_tree', $contents);
+        $this->assertStringContainsString('artworks/bulk-update', $contents);
         $this->assertStringContainsString('redeploy_ensure_public_storage_symlink', $this->validationLib());
         $this->assertDoesNotMatchRegularExpression(
             '/--exclude="vendor"/',

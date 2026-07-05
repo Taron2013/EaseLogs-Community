@@ -59,7 +59,6 @@ class ArtworkCsvTest extends TestCase
             'title' => 'Field Check',
             'start_date' => '2026-01-05',
             'completed_date' => '2026-02-01',
-            'artwork_type' => 'Painting',
             'medium' => 'Oil',
             'height' => 10,
             'width' => 8,
@@ -87,7 +86,7 @@ class ArtworkCsvTest extends TestCase
 
         $csv = implode("\n", [
             implode(',', ArtworkCsvService::COLUMNS),
-            'Imported Work,2026-03-01,2026-03-15,Drawing,Graphite,11,14,,in,From CSV',
+            'Imported Work,2026-03-01,2026-03-15,Graphite,11,14,,in,From CSV',
         ]);
 
         $response = $this->post(route('artworks.import.csv'), [
@@ -99,7 +98,6 @@ class ArtworkCsvTest extends TestCase
 
         $this->assertDatabaseHas('artworks', [
             'title' => 'Imported Work',
-            'artwork_type' => 'Drawing',
             'medium' => 'Graphite',
             'notes' => 'From CSV',
         ]);
@@ -145,7 +143,6 @@ class ArtworkCsvTest extends TestCase
         $this->assertSame('Dated Work', $artwork->title);
         $this->assertSame('2026-04-10', $artwork->start_date?->format('Y-m-d'));
         $this->assertNull($artwork->completed_date);
-        $this->assertNull($artwork->artwork_type);
     }
 
     public function test_csv_import_ignores_unknown_columns(): void

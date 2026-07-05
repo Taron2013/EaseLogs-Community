@@ -22,7 +22,6 @@ class CommunityEditionArtworkFieldsTest extends TestCase
         $create->assertSee('name="start_date"', false);
         $create->assertSee('name="completed_work"', false);
         $create->assertSee('name="completed_date"', false);
-        $create->assertSee('name="artwork_type"', false);
         $create->assertSee('name="medium"', false);
         $create->assertSee('name="height"', false);
         $create->assertSee('name="width"', false);
@@ -41,7 +40,7 @@ class CommunityEditionArtworkFieldsTest extends TestCase
         $edit->assertSee('name="start_date"', false);
         $edit->assertSee('name="completed_work"', false);
         $edit->assertSee('name="completed_date"', false);
-        $edit->assertSee('name="artwork_type"', false);
+        $edit->assertDontSee('name="artwork_type"', false);
         $edit->assertSee('name="notes"', false);
         $edit->assertDontSee('name="inventory_code"', false);
         $edit->assertDontSee('professional_art_reproduction_photo', false);
@@ -56,7 +55,6 @@ class CommunityEditionArtworkFieldsTest extends TestCase
             'start_date' => '2026-01-10',
             'completed_work' => 1,
             'completed_date' => '2026-02-20',
-            'artwork_type' => 'Painting',
             'medium' => 'Oil on linen',
             'height' => 24,
             'width' => 18,
@@ -72,7 +70,6 @@ class CommunityEditionArtworkFieldsTest extends TestCase
         $this->assertSame('Studio Piece', $artwork->title);
         $this->assertSame('2026-01-10', $artwork->start_date?->format('Y-m-d'));
         $this->assertSame('2026-02-20', $artwork->completed_date?->format('Y-m-d'));
-        $this->assertSame('Painting', $artwork->artwork_type);
         $this->assertSame('Oil on linen', $artwork->medium);
         $this->assertSame('Framed', $artwork->notes);
     }

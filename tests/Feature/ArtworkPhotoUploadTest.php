@@ -230,7 +230,6 @@ class ArtworkPhotoUploadTest extends TestCase
             'title' => '',
             'start_date' => now()->format('Y-m-d'),
             'medium' => 'Acrylic',
-            'artwork_type' => 'Painting',
         ]);
 
         $response->assertRedirect('/artworks');
@@ -238,7 +237,6 @@ class ArtworkPhotoUploadTest extends TestCase
         $this->assertDatabaseHas('artworks', [
             'title' => '',
             'medium' => 'Acrylic',
-            'artwork_type' => 'Painting',
         ]);
     }
 }

@@ -6,12 +6,12 @@ use App\Http\Requests\ArtworkBulkDeleteRequest;
 use App\Http\Requests\ArtworkRequest;
 use App\Models\Artwork;
 use App\Models\User;
-use App\Support\ArtworkIndexFilters;
-use App\Support\ArtworkIndexSearch;
-use App\Support\ArtworkIndexSort;
+use App\Support\ArtworkIndexQuery;
 use App\Support\ArtworkStartDate;
 use App\Support\DemoMode;
+use App\Services\ArtworkMediumSuggestionService;
 use App\Services\ArtworkPhotoService;
+use App\Services\ArtworkTagService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,40 +19,39 @@ use Illuminate\View\View;
 class ArtworkController extends Controller
 {
     public function __construct(
+        private readonly ArtworkMediumSuggestionService $mediumSuggestionService,
         private readonly ArtworkPhotoService $photoService,
+        private readonly ArtworkTagService $tagService,
     ) {}
 
     public function index(Request $request): View
     {
-        $filters = ArtworkIndexFilters::fromRequest($request);
-        $search = ArtworkIndexSearch::fromRequest($request);
-        $sort = ArtworkIndexSort::fromRequest($request);
+        $listing = ArtworkIndexQuery::fromRequest($request);
+        $user = $request->user();
 
-        $artworks = Artwork::query()
-            ->with('latestPhoto')
-            ->tap(fn ($query) => $filters->apply($query))
-            ->tap(fn ($query) => $search->apply($query))
-            ->tap(fn ($query) => $sort->apply($query))
+        $artworks = $listing->baseQuery()
+            ->with(['latestPhoto', 'tags'])
+            ->tap(fn ($query) => $listing->applyTo($query, $user->id))
             ->paginate(20)
             ->withQueryString();
 
         return view('artworks.index', [
             'artworks' => $artworks,
-            'filters' => $filters,
-            'search' => $search,
-            'sort' => $sort,
-            'artworkTypes' => Artwork::query()
-                ->whereNotNull('artwork_type')
-                ->where('artwork_type', '!=', '')
+            'listing' => $listing,
+            'filters' => $listing->filters(),
+            'search' => $listing->search(),
+            'sort' => $listing->sort(),
+            'mediums' => $this->mediumSuggestionService->filterOptions($user),
+            'tags' => \App\Models\ArtworkTag::query()
+                ->where('user_id', $user->id)
+                ->orderBy('name')
+                ->pluck('name'),
+            'dimensionUnits' => Artwork::query()
+                ->whereNotNull('dimension_unit')
+                ->where('dimension_unit', '!=', '')
                 ->distinct()
-                ->orderBy('artwork_type')
-                ->pluck('artwork_type'),
-            'mediums' => Artwork::query()
-                ->whereNotNull('medium')
-                ->where('medium', '!=', '')
-                ->distinct()
-                ->orderBy('medium')
-                ->pluck('medium'),
+                ->orderBy('dimension_unit')
+                ->pluck('dimension_unit'),
         ]);
     }
 
@@ -70,6 +69,14 @@ class ArtworkController extends Controller
 
         $artwork = Artwork::create($data);
 
+        if ($request->has('tags')) {
+            $this->tagService->syncForArtwork(
+                $artwork,
+                $user,
+                $this->tagService->parseTagInput($request->input('tags')),
+            );
+        }
+
         if ($request->hasFile('photo')) {
             $this->photoService->store($artwork, $request->file('photo'));
         }
@@ -79,14 +86,14 @@ class ArtworkController extends Controller
 
     public function show(Artwork $artwork): View
     {
-        $artwork->load('latestPhoto');
+        $artwork->load(['latestPhoto', 'publishingProfile']);
 
         return view('artworks.show', compact('artwork'));
     }
 
     public function edit(Artwork $artwork): View
     {
-        $artwork->load('latestPhoto');
+        $artwork->load(['latestPhoto', 'tags', 'publishingProfile']);
 
         return view('artworks.edit', [
             'artwork' => $artwork,
@@ -103,6 +110,14 @@ class ArtworkController extends Controller
         );
 
         $artwork->update($data);
+
+        if ($request->has('tags')) {
+            $this->tagService->syncForArtwork(
+                $artwork,
+                $user,
+                $this->tagService->parseTagInput($request->input('tags')),
+            );
+        }
 
         if ($request->hasFile('photo')) {
             $this->photoService->store($artwork, $request->file('photo'));
@@ -155,7 +170,7 @@ class ArtworkController extends Controller
      */
     private function prepareArtworkData(array $data, ?User $user, ?Artwork $artwork = null): array
     {
-        unset($data['photo'], $data['completed_work'], $data['confirm_completed_photo_upload']);
+        unset($data['photo'], $data['completed_work'], $data['confirm_completed_photo_upload'], $data['tags']);
 
         if ($artwork === null) {
             $data = ArtworkStartDate::applyCreateDefault($data);

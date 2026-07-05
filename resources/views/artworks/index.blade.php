@@ -10,74 +10,18 @@
     @php
         $listQuery = array_merge($filters->queryParams(), $search->queryParams());
         $indexQuery = array_merge($listQuery, $sort->queryParams());
-        $hasActiveViewModifiers = $filters->hasActiveFilters()
-            || $search->hasTerm()
-            || ! $sort->usesDefaultListing();
+        $hasActiveViewModifiers = $listing->hasActiveModifiers();
     @endphp
 
-    <section class="artwork-filters" aria-label="Artwork filters">
-        <p class="artwork-filters-label">Filter</p>
-        <div class="artwork-filters-quick">
-            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('all'), $search->queryParams(), $sort->queryParams())) }}"
-               class="filter-pill{{ $filters->isQuickFilterActive('all') ? ' is-active' : '' }}">All</a>
-            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('in_progress'), $search->queryParams(), $sort->queryParams())) }}"
-               class="filter-pill{{ $filters->isQuickFilterActive('in_progress') ? ' is-active' : '' }}">In progress</a>
-            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('completed'), $search->queryParams(), $sort->queryParams())) }}"
-               class="filter-pill{{ $filters->isQuickFilterActive('completed') ? ' is-active' : '' }}">Completed</a>
-            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('untitled'), $search->queryParams(), $sort->queryParams())) }}"
-               class="filter-pill{{ $filters->isQuickFilterActive('untitled') ? ' is-active' : '' }}">Untitled</a>
-            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('missing_photo'), $search->queryParams(), $sort->queryParams())) }}"
-               class="filter-pill{{ $filters->isQuickFilterActive('missing_photo') ? ' is-active' : '' }}">Missing photo</a>
-            <a href="{{ route('artworks.index', array_merge($filters->queryParamsForQuickFilter('missing_dimensions'), $search->queryParams(), $sort->queryParams())) }}"
-               class="filter-pill{{ $filters->isQuickFilterActive('missing_dimensions') ? ' is-active' : '' }}">Missing dimensions</a>
-        </div>
-
-        <form method="GET" action="{{ route('artworks.index') }}" class="artwork-filters-fields">
-            @foreach ($sort->queryParams() as $name => $value)
-                <input type="hidden" name="{{ $name }}" value="{{ $value }}">
-            @endforeach
-            @if ($filters->quickFilter() !== 'all')
-                <input type="hidden" name="filter" value="{{ $filters->quickFilter() }}">
-            @endif
-
-            <div class="filter-field">
-                <label for="filter_q">Search</label>
-                <input type="search" name="q" id="filter_q" value="{{ $search->term() ?? '' }}" placeholder="Title or notes" autocomplete="off">
-            </div>
-
-            <div class="filter-field">
-                <label for="filter_artwork_type">Artwork type</label>
-                <select name="artwork_type" id="filter_artwork_type">
-                    <option value="">Any</option>
-                    @foreach ($artworkTypes as $type)
-                        <option value="{{ $type }}" @selected($filters->artworkType() === $type)>{{ $type }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="filter-field">
-                <label for="filter_medium">Medium</label>
-                <select name="medium" id="filter_medium">
-                    <option value="">Any</option>
-                    @foreach ($mediums as $mediumOption)
-                        <option value="{{ $mediumOption }}" @selected($filters->medium() === $mediumOption)>{{ $mediumOption }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <button type="submit" class="btn filter-apply-btn">Apply</button>
-        </form>
-
-        @if ($hasActiveViewModifiers)
-            <p class="artwork-filters-clear">
-                @if ($filters->hasActiveFilters())
-                    <a href="{{ route('artworks.index', array_merge($search->queryParams(), $sort->queryParams())) }}">Clear filters</a>
-                    <span class="artwork-filters-clear-sep"> · </span>
-                @endif
-                <a href="{{ route('artworks.index') }}">Reset view</a>
-            </p>
-        @endif
-    </section>
+    @include('artworks._index_filters', [
+        'filters' => $filters,
+        'search' => $search,
+        'sort' => $sort,
+        'mediums' => $mediums,
+        'tags' => $tags,
+        'dimensionUnits' => $dimensionUnits,
+        'searchPlaceholder' => 'Title or notes',
+    ])
 
     @include('artworks._index_sort_bar', ['filters' => $filters, 'search' => $search, 'sort' => $sort])
 
@@ -148,11 +92,6 @@
                         </a>
                     </th>
                     <th>
-                        <a href="{{ route('artworks.index', $sort->queryParamsFor('artwork_type', $listQuery)) }}" class="sort-link">
-                            Artwork type <span class="sort-indicator">{{ $sort->indicator('artwork_type') }}</span>
-                        </a>
-                    </th>
-                    <th>
                         <a href="{{ route('artworks.index', $sort->queryParamsFor('medium', $listQuery)) }}" class="sort-link">
                             Medium <span class="sort-indicator">{{ $sort->indicator('medium') }}</span>
                         </a>
@@ -197,7 +136,6 @@
                             @include('artworks._index_artwork_photo', ['artwork' => $artwork])
                         </td>
                         <td><a href="{{ route('artworks.show', $artwork) }}">{{ $artwork->displayTitle() }}</a></td>
-                        <td>{{ $artwork->artwork_type ?? '—' }}</td>
                         <td>{{ $artwork->medium ?? '—' }}</td>
                         <td>{{ $artwork->formattedDimensions() ?? '—' }}</td>
                         <td>{{ $artwork->formattedDisplayStartDate() }}</td>

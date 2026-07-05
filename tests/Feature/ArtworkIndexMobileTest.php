@@ -16,7 +16,6 @@ class ArtworkIndexMobileTest extends TestCase
 
         Artwork::factory()->for($user)->create([
             'title' => 'Mobile Card Work',
-            'artwork_type' => 'Painting',
             'medium' => 'Oil',
         ]);
 

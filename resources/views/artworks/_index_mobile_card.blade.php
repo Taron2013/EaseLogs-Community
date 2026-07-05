@@ -20,10 +20,6 @@
 
     <dl class="artwork-mobile-card-meta">
         <div>
-            <dt>Artwork type</dt>
-            <dd>{{ $artwork->artwork_type ?? '—' }}</dd>
-        </div>
-        <div>
             <dt>Medium</dt>
             <dd>{{ $artwork->medium ?? '—' }}</dd>
         </div>

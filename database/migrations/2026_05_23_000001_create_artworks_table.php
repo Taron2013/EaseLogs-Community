@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('title')->default('');
             $table->date('start_date')->nullable();
             $table->date('completed_date')->nullable();
-            $table->string('artwork_type')->nullable();
             $table->string('medium')->nullable();
             $table->decimal('height', 10, 2)->nullable();
             $table->decimal('width', 10, 2)->nullable();

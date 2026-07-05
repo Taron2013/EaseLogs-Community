@@ -24,7 +24,6 @@ class ArtworkIndexSort
      */
     private const SORTABLE_COLUMNS = [
         'title' => 'title',
-        'artwork_type' => 'artwork_type',
         'medium' => 'medium',
         self::SORT_DIMENSIONS => self::SORT_DIMENSIONS,
         'start_date' => 'start_date',
