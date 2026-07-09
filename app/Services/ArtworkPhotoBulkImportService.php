@@ -12,13 +12,13 @@ use App\Support\ArtworkPhotoBulkImport\BulkImportRowStatus;
 use App\Support\ArtworkPhotoBulkImport\FilenameTitleParser;
 use App\Support\ArtworkPhotoBulkImport\PhotoImportArtworkSearch;
 use App\Support\ArtworkPhotoBulkImport\PhotoImportPreviewThumbnailService;
+use App\Support\ArtworkPhotoBulkImport\PhotoImportZipExtractor;
 use App\Support\DemoMode;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use ZipArchive;
 
 class ArtworkPhotoBulkImportService
 {
@@ -43,6 +43,7 @@ class ArtworkPhotoBulkImportService
         private readonly PhotoImportPreviewThumbnailService $thumbnailService,
         private readonly PhotoImportArtworkSearch $artworkSearch,
         private readonly ArtworkPhotoFileHashService $fileHashService,
+        private readonly PhotoImportZipExtractor $zipExtractor,
     ) {}
 
     /**
@@ -311,18 +312,13 @@ class ArtworkPhotoBulkImportService
     private function extractZip(UploadedFile $zipFile, string $token): string
     {
         $extractPath = storage_path('app/temp/photo-imports/'.$token);
+        $zipPath = $zipFile->getRealPath();
 
-        File::ensureDirectoryExists($extractPath);
-
-        $zip = new ZipArchive;
-        $opened = $zip->open($zipFile->getRealPath());
-
-        if ($opened !== true) {
+        if (! is_string($zipPath) || $zipPath === '') {
             throw new \InvalidArgumentException('The ZIP file could not be opened.');
         }
 
-        $zip->extractTo($extractPath);
-        $zip->close();
+        $this->zipExtractor->extract($zipPath, $extractPath);
 
         return $extractPath;
     }

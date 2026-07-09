@@ -129,3 +129,23 @@ client_max_body_size 4096M;
 See `deploy/nginx/easelogs.local.conf.example` and [LOCAL_INTRANET_DEPLOYMENT.md](LOCAL_INTRANET_DEPLOYMENT.md).
 
 After changing Nginx or PHP, reload the service and retry the upload.
+
+## ZIP extraction safeguards
+
+Before extracting an uploaded photo ZIP, EaseLogs validates archive contents to reduce Zip Slip and resource-exhaustion risks:
+
+- Rejects path traversal (`..`), absolute paths, null bytes, and duplicate paths
+- Rejects symbolic link entries
+- Enforces limits on entry count, total uncompressed size, per-file uncompressed size, path depth, and path length
+
+Defaults are configured in `config/easelogs.php` under `photo_import_zip` and can be overridden via `.env`:
+
+| Setting | Default |
+|---------|---------|
+| `EASELOGS_PHOTO_IMPORT_ZIP_MAX_ENTRIES` | 2000 |
+| `EASELOGS_PHOTO_IMPORT_ZIP_MAX_TOTAL_UNCOMPRESSED_MB` | 15360 (15 GB) |
+| `EASELOGS_PHOTO_IMPORT_ZIP_MAX_ENTRY_UNCOMPRESSED_MB` | 25 |
+| `EASELOGS_PHOTO_IMPORT_ZIP_MAX_PATH_DEPTH` | 10 |
+| `EASELOGS_PHOTO_IMPORT_ZIP_MAX_PATH_LENGTH` | 255 |
+
+Unsafe archives are rejected with an error on the Import / Export page; no files are extracted outside the temporary import directory.

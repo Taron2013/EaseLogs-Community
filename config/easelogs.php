@@ -83,6 +83,24 @@ return [
         return $mb > 0 ? $mb : 4096;
     })(),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Bulk photo import ZIP extraction limits (Community Edition)
+    |--------------------------------------------------------------------------
+    |
+    | Safeguards applied before extracting uploaded photo ZIP archives:
+    | entry count, total uncompressed size, per-entry size, and path depth.
+    |
+    */
+
+    'photo_import_zip' => [
+        'max_entries' => (int) env('EASELOGS_PHOTO_IMPORT_ZIP_MAX_ENTRIES', 2000),
+        'max_total_uncompressed_mb' => (int) env('EASELOGS_PHOTO_IMPORT_ZIP_MAX_TOTAL_UNCOMPRESSED_MB', 15360),
+        'max_entry_uncompressed_mb' => (int) env('EASELOGS_PHOTO_IMPORT_ZIP_MAX_ENTRY_UNCOMPRESSED_MB', 25),
+        'max_path_depth' => (int) env('EASELOGS_PHOTO_IMPORT_ZIP_MAX_PATH_DEPTH', 10),
+        'max_path_length' => (int) env('EASELOGS_PHOTO_IMPORT_ZIP_MAX_PATH_LENGTH', 255),
+    ],
+
     'photo_mimes' => ['jpeg', 'jpg', 'png', 'webp'],
 
     /*
