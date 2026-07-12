@@ -18,7 +18,7 @@
         'search' => $search,
         'sort' => $sort,
         'mediums' => $mediums,
-        'tags' => $tags,
+        'tagOptions' => $tagOptions,
         'dimensionUnits' => $dimensionUnits,
         'searchPlaceholder' => 'Title or notes',
     ])
@@ -49,9 +49,7 @@
                   class="bulk-delete-form">
                 @csrf
                 @method('DELETE')
-                @foreach ($indexQuery as $name => $value)
-                    <input type="hidden" name="{{ $name }}" value="{{ $value }}">
-                @endforeach
+                @include('artworks._query_hidden_fields', ['params' => $indexQuery])
             </form>
 
             <div id="bulk-actions" class="bulk-actions" hidden>
@@ -111,6 +109,7 @@
                             Completed date <span class="sort-indicator">{{ $sort->indicator('completed_date') }}</span>
                         </a>
                     </th>
+                    <th>Tags</th>
                     <th>
                         <a href="{{ route('artworks.index', $sort->queryParamsFor('updated_at', $listQuery)) }}" class="sort-link">
                             Updated <span class="sort-indicator">{{ $sort->indicator('updated_at') }}</span>
@@ -140,6 +139,7 @@
                         <td>{{ $artwork->formattedDimensions() ?? '—' }}</td>
                         <td>{{ $artwork->formattedDisplayStartDate() }}</td>
                         <td>{{ $artwork->formattedDisplayCompletedDate() }}</td>
+                        <td>@include('artworks._artwork_tags_display', ['artwork' => $artwork, 'compact' => true])</td>
                         <td>{{ $artwork->updated_at?->format('Y-m-d') }}</td>
                         <td class="artwork-actions">
                             @include('artworks._index_artwork_actions', ['artwork' => $artwork])

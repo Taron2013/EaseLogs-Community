@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\EaseLogsEdition;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -32,7 +33,14 @@ class ArtworkRequest extends FormRequest
             'depth' => ['nullable', 'numeric', 'min:0'],
             'dimension_unit' => ['nullable', 'string', 'max:10'],
             'notes' => ['nullable', 'string'],
-            'tags' => ['nullable', 'string', 'max:2000'],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['string', 'max:255'],
+            'style_tags' => [Rule::prohibitedIf(fn (): bool => EaseLogsEdition::enforcesGeneralOnlyArtworkTags()), 'array'],
+            'style_tags.*' => ['string', 'max:255'],
+            'subject_tags' => [Rule::prohibitedIf(fn (): bool => EaseLogsEdition::enforcesGeneralOnlyArtworkTags()), 'array'],
+            'subject_tags.*' => ['string', 'max:255'],
+            'general_tags' => [Rule::prohibitedIf(fn (): bool => EaseLogsEdition::enforcesGeneralOnlyArtworkTags()), 'array'],
+            'general_tags.*' => ['string', 'max:255'],
             'confirm_completed_photo_upload' => ['nullable', 'boolean'],
             'photo' => [
                 'nullable',

@@ -83,27 +83,7 @@
         <p class="field-hint">For your studio records only. Use the Publishing section for public-facing copy.</p>
     </div>
 
-    <div class="field">
-        <label for="tags">Tags</label>
-        <input
-            type="text"
-            name="tags"
-            id="tags"
-            value="{{ old('tags', $artwork->exists ? $artwork->tags->pluck('name')->join(', ') : '') }}"
-            list="artwork-tag-suggestions"
-            maxlength="2000"
-            placeholder="Comma-separated, e.g. Abstract, Landscape"
-        >
-        <datalist id="artwork-tag-suggestions">
-            @foreach (\App\Models\ArtworkTag::query()->where('user_id', auth()->id())->orderBy('name')->pluck('name') as $tagName)
-                <option value="{{ $tagName }}"></option>
-            @endforeach
-            @foreach (\App\Services\ArtworkTagService::EXAMPLE_TAGS as $example)
-                <option value="{{ $example }}"></option>
-            @endforeach
-        </datalist>
-        <p class="field-hint">Optional. User-defined tags for filtering and organization.</p>
-    </div>
+    @include('artworks._tags_field', ['artwork' => $artwork, 'tagOptions' => $tagOptions ?? null])
 </div>
 
 <script>

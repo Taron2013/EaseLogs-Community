@@ -1,9 +1,12 @@
 @php
     $listingRoute = $listingRoute ?? 'artworks.index';
-    $searchPlaceholder = $searchPlaceholder ?? 'Title, notes, inventory code, SKU';
+    $searchPlaceholder = $searchPlaceholder ?? 'Title, notes';
+    $tagOptions = $tagOptions ?? collect();
+    $selectedTag = $filters->tag() ?? '';
     $hasActiveViewModifiers = $filters->hasActiveFilters()
         || $search->hasTerm()
         || ! $sort->usesDefaultListing();
+    $hasTagFilter = $tagOptions->isNotEmpty();
 @endphp
 
 <section class="artwork-filters" aria-label="Artwork filters">
@@ -24,9 +27,7 @@
     </div>
 
     <form method="GET" action="{{ route($listingRoute) }}" class="artwork-filters-fields">
-        @foreach ($sort->queryParams() as $name => $value)
-            <input type="hidden" name="{{ $name }}" value="{{ $value }}">
-        @endforeach
+        @include('artworks._query_hidden_fields', ['params' => $sort->queryParams()])
         @if ($filters->quickFilter() !== 'all')
             <input type="hidden" name="filter" value="{{ $filters->quickFilter() }}">
         @endif
@@ -46,16 +47,14 @@
             </select>
         </div>
 
-        @if (($tags ?? collect())->isNotEmpty())
-            <div class="filter-field">
-                <label for="filter_tag">Tag</label>
-                <select name="tag" id="filter_tag">
-                    <option value="">Any</option>
-                    @foreach ($tags as $tagOption)
-                        <option value="{{ $tagOption }}" @selected($filters->tag() === $tagOption)>{{ $tagOption }}</option>
-                    @endforeach
-                </select>
-            </div>
+        @if ($hasTagFilter)
+            @include('artworks._index_typed_tag_combobox', [
+                'param' => 'tag',
+                'label' => 'Tag',
+                'emptyLabel' => 'Any tag',
+                'options' => $tagOptions,
+                'selected' => $selectedTag,
+            ])
         @endif
 
         <div class="filter-field">
@@ -101,3 +100,7 @@
         </p>
     @endif
 </section>
+
+@if ($hasTagFilter)
+    @include('artworks._index_typed_tag_combobox_script')
+@endif

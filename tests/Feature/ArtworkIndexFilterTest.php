@@ -6,6 +6,7 @@ use App\Models\Artwork;
 use App\Models\ArtworkPhoto;
 use App\Models\ArtworkTag;
 use App\Support\ArtworkIndexFilters;
+use App\Support\ArtworkTagType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -338,6 +339,7 @@ class ArtworkIndexFilterTest extends TestCase
             'user_id' => $user->id,
             'name' => 'Landscape',
             'normalized_name' => 'landscape',
+            'type' => ArtworkTagType::GENERAL,
         ]);
         $tagged->tags()->attach($tag);
 
@@ -349,7 +351,7 @@ class ArtworkIndexFilterTest extends TestCase
 
     public function test_filter_class_normalizes_invalid_quick_filter_to_all(): void
     {
-        $filters = new ArtworkIndexFilters('bogus', null, null, null, null, null, null, null);
+        $filters = new ArtworkIndexFilters('bogus', null, null, null, [], [], [], null, null, null, null, null, null);
 
         $this->assertSame(ArtworkIndexFilters::QUICK_ALL, $filters->quickFilter());
         $this->assertFalse($filters->hasActiveFilters());

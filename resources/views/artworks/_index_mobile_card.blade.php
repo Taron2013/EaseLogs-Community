@@ -20,6 +20,10 @@
 
     <dl class="artwork-mobile-card-meta">
         <div>
+            <dt>Tags</dt>
+            <dd>@include('artworks._artwork_tags_display', ['artwork' => $artwork, 'compact' => true])</dd>
+        </div>
+        <div>
             <dt>Medium</dt>
             <dd>{{ $artwork->medium ?? '—' }}</dd>
         </div>

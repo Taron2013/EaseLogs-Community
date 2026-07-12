@@ -12,12 +12,8 @@
     </div>
 
     <form method="GET" action="{{ route($listingRoute) }}" class="artwork-sort-fields artwork-sort-fields-mobile">
-        @foreach ($filters->queryParams() as $name => $value)
-            <input type="hidden" name="{{ $name }}" value="{{ $value }}">
-        @endforeach
-        @foreach ($search->queryParams() as $name => $value)
-            <input type="hidden" name="{{ $name }}" value="{{ $value }}">
-        @endforeach
+        @include('artworks._query_hidden_fields', ['params' => $filters->queryParams()])
+        @include('artworks._query_hidden_fields', ['params' => $search->queryParams()])
 
         <div class="filter-field">
             <label for="mobile_sort_column">Sort by</label>

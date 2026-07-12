@@ -606,6 +606,8 @@ Add photos separately from the artwork create or edit screens after import.
 * Photo uploads (single primary photo per artwork in the UI)
 * Thumbnail gallery and artwork detail pages
 * Artwork index search, filters, sort (default: recently updated), and bulk delete
+* **Typed artwork tags** (Style / Subject / General) on create, edit, show, and index — see [ARTWORK_TAGS.md](ARTWORK_TAGS.md)
+* Tag settings for basic rename, reclassify, and delete (Profile → Artwork tags)
 * Mobile-friendly index cards and mobile sort controls
 * CSV metadata import and export (no photos in CSV)
 * Single-owner local deployment and private self-hosting
@@ -619,7 +621,8 @@ Add photos separately from the artwork create or edit screens after import.
 * Multi-user accounts, roles, or collaboration
 * OAuth / social login (see [AUTH_EXTENSIONS.md](AUTH_EXTENSIONS.md) for future direction)
 * Forgot-password email flow (offline single-owner installs)
-* Internal tables in the UI: events, tags, `app_settings` (see [DATABASE_INTERNAL_SCHEMA.md](DATABASE_INTERNAL_SCHEMA.md))
+* Internal tables in the UI: events, `app_settings` (see [DATABASE_INTERNAL_SCHEMA.md](DATABASE_INTERNAL_SCHEMA.md))
+* Tag merge and bulk tag reassignment (Pro-only; CE uses per-artwork edit + settings delete — see [ARTWORK_TAGS.md](ARTWORK_TAGS.md))
 * SKU, valuation, inventory codes, and other extended commercial fields in forms or CSV
 * Subscription services or enterprise deployment features
 

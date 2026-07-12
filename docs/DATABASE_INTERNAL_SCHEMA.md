@@ -9,8 +9,8 @@ EaseLogs Community Edition runs migrations that create some tables and columns *
 | Table | Intended use (future / internal) | Community behavior |
 |-------|----------------------------------|--------------------|
 | `artwork_events` | Status and location change history | Migrated; no Community routes or forms |
-| `artwork_tags` | Tag definitions | No Community UI |
-| `artwork_tag` | Artwork–tag pivot | No Community UI |
+| `artwork_tags` | Tag definitions (Style / Subject / General) | Tag settings + artwork forms; see [ARTWORK_TAGS.md](ARTWORK_TAGS.md) |
+| `artwork_tag` | Artwork–tag pivot | Used with typed tags on artworks |
 | `app_settings` | Application-wide settings store | No Community UI |
 
 Models exist (`ArtworkEvent`, `ArtworkTag`, `AppSetting`) for schema consistency. They are not required for day-to-day Community use.

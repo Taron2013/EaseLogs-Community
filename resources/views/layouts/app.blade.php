@@ -145,6 +145,69 @@
             gap: 0.35rem 0.5rem;
         }
         .filter-field label { font-size: 0.8rem; font-weight: 500; color: #555; }
+        .filter-field select[multiple] { min-width: 8rem; max-width: 12rem; min-height: 4.5rem; }
+        .filter-tag-combobox.is-enhanced .filter-tag-combobox-fallback {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        .filter-tag-combobox-input { min-width: 8rem; max-width: 12rem; }
+        .tag-picker-selected { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.45rem; min-height: 0; }
+        .tag-picker-add { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+        .tag-picker-input { flex: 1 1 12rem; min-width: 10rem; }
+        .tag-picker-add-btn { flex: 0 0 auto; }
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.15rem 0.45rem;
+            font-size: 0.78rem;
+            line-height: 1.35;
+            border-radius: 999px;
+            border: 1px solid #d0d0ce;
+            background: #f5f5f3;
+            color: #333;
+        }
+        .tag-chip-readonly { padding-right: 0.55rem; }
+        .tag-chip-style { background: #eef3fa; border-color: #c5d4ea; color: #1a3d6b; }
+        .tag-chip-subject { background: #eef6ee; border-color: #c5dcc5; color: #2d4a2d; }
+        .tag-chip-general { background: #f5f3ee; border-color: #ddd8cc; color: #4a4438; }
+        .tag-chip-remove {
+            border: none;
+            background: transparent;
+            color: inherit;
+            opacity: 0.65;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            padding: 0 0.1rem;
+        }
+        .tag-chip-remove:hover { opacity: 1; }
+        .artwork-tags-compact { margin: 0.25rem 0 0; display: flex; flex-wrap: wrap; gap: 0.25rem; }
+        .artwork-tags-display { margin: 0; }
+        .artwork-tags-group { margin-bottom: 0.65rem; }
+        .artwork-tags-group:last-child { margin-bottom: 0; }
+        .artwork-tags-group-label {
+            margin: 0 0 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .artwork-tags-group-list { margin: 0; display: flex; flex-wrap: wrap; gap: 0.3rem; }
+        .artwork-tag-admin-create-fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem 1rem; }
+        .artwork-tag-admin-create-fields .field { margin-bottom: 0; }
+        .artwork-tag-admin-create-action { align-self: flex-end; }
+        .artwork-tag-admin-edit-form { display: flex; gap: 0.35rem; align-items: center; margin: 0; }
+        .artwork-tag-admin-edit-form input[type="text"] { min-width: 10rem; }
+        .artwork-tag-admin-table select { min-width: 7rem; }
         .filter-apply-btn { align-self: flex-end; }
         .artwork-sort-bar {
             margin-bottom: 1.25rem;
@@ -506,6 +569,9 @@
                     <a href="{{ route('artworks.import-export') }}">Import / Export</a>
                 </div>
                 <div class="app-nav-account" aria-label="Account">
+                    @if (\App\Support\EaseLogsEdition::supportsArtworkTagAdmin())
+                        <a href="{{ route('settings.artwork-tags.index') }}">Settings</a>
+                    @endif
                     <a href="{{ route('profile.show') }}">Profile</a>
                     <form method="POST" action="{{ route('logout') }}" class="app-nav-logout">
                         @csrf

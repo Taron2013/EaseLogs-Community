@@ -32,6 +32,9 @@
         <dt>Private notes (studio only)</dt>
         <dd>{{ $artwork->notes ?: '—' }}</dd>
 
+        <dt>Tags</dt>
+        <dd>@include('artworks._artwork_tags_display', ['artwork' => $artwork])</dd>
+
         <dt>Created</dt>
         <dd>{{ $artwork->created_at?->format('Y-m-d H:i') }}</dd>
 

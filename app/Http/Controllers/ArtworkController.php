@@ -42,10 +42,7 @@ class ArtworkController extends Controller
             'search' => $listing->search(),
             'sort' => $listing->sort(),
             'mediums' => $this->mediumSuggestionService->filterOptions($user),
-            'tags' => \App\Models\ArtworkTag::query()
-                ->where('user_id', $user->id)
-                ->orderBy('name')
-                ->pluck('name'),
+            'tagOptions' => $this->tagService->userTagNameOptions($user),
             'dimensionUnits' => Artwork::query()
                 ->whereNotNull('dimension_unit')
                 ->where('dimension_unit', '!=', '')
@@ -59,6 +56,7 @@ class ArtworkController extends Controller
     {
         return view('artworks.create', [
             'artwork' => new Artwork,
+            'tagOptions' => $this->tagService->userTagNameOptions(auth()->user()),
         ]);
     }
 
@@ -70,11 +68,7 @@ class ArtworkController extends Controller
         $artwork = Artwork::create($data);
 
         if ($request->has('tags')) {
-            $this->tagService->syncForArtwork(
-                $artwork,
-                $user,
-                $this->tagService->parseTagInput($request->input('tags')),
-            );
+            $this->syncArtworkTagsFromRequest($request, $artwork, $user);
         }
 
         if ($request->hasFile('photo')) {
@@ -86,7 +80,7 @@ class ArtworkController extends Controller
 
     public function show(Artwork $artwork): View
     {
-        $artwork->load(['latestPhoto', 'publishingProfile']);
+        $artwork->load(['latestPhoto', 'tags', 'publishingProfile']);
 
         return view('artworks.show', compact('artwork'));
     }
@@ -97,6 +91,7 @@ class ArtworkController extends Controller
 
         return view('artworks.edit', [
             'artwork' => $artwork,
+            'tagOptions' => $this->tagService->userTagNameOptions(auth()->user()),
         ]);
     }
 
@@ -112,11 +107,7 @@ class ArtworkController extends Controller
         $artwork->update($data);
 
         if ($request->has('tags')) {
-            $this->tagService->syncForArtwork(
-                $artwork,
-                $user,
-                $this->tagService->parseTagInput($request->input('tags')),
-            );
+            $this->syncArtworkTagsFromRequest($request, $artwork, $user);
         }
 
         if ($request->hasFile('photo')) {
@@ -170,7 +161,15 @@ class ArtworkController extends Controller
      */
     private function prepareArtworkData(array $data, ?User $user, ?Artwork $artwork = null): array
     {
-        unset($data['photo'], $data['completed_work'], $data['confirm_completed_photo_upload'], $data['tags']);
+        unset(
+            $data['photo'],
+            $data['completed_work'],
+            $data['confirm_completed_photo_upload'],
+            $data['tags'],
+            $data['style_tags'],
+            $data['subject_tags'],
+            $data['general_tags'],
+        );
 
         if ($artwork === null) {
             $data = ArtworkStartDate::applyCreateDefault($data);
@@ -206,5 +205,14 @@ class ArtworkController extends Controller
         }
 
         return $redirect->with('info', DemoMode::MESSAGE_UPLOAD_DISCARDED);
+    }
+
+    private function syncArtworkTagsFromRequest(ArtworkRequest $request, Artwork $artwork, User $user): void
+    {
+        $this->tagService->syncCommunityTagsForArtwork(
+            $artwork,
+            $user,
+            $this->tagService->communityTagsFromRequestInput($request->all()),
+        );
     }
 }

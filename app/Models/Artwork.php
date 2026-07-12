@@ -81,6 +81,26 @@ class Artwork extends Model
     }
 
     /**
+     * @return list<string>
+     */
+    public function tagNamesForType(string $type): array
+    {
+        return $this->tags()
+            ->where('type', \App\Support\ArtworkTagType::normalize($type))
+            ->orderBy('name')
+            ->pluck('name')
+            ->all();
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    public function tagsGroupedByType(): array
+    {
+        return app(\App\Services\ArtworkTagService::class)->tagsByTypeFromArtwork($this);
+    }
+
+    /**
      * @return HasOne<ArtworkPublishingProfile, $this>
      */
     public function publishingProfile(): HasOne

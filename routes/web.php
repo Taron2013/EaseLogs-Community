@@ -4,6 +4,7 @@ use App\Http\Controllers\ArtworkController;
 use App\Http\Controllers\ArtworkCsvController;
 use App\Http\Controllers\ArtworkPhotoBulkImportController;
 use App\Http\Controllers\ArtworkPublishingController;
+use App\Http\Controllers\ArtworkTagAdminController;
 use App\Http\Controllers\DemoLoginController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProfileController;
@@ -75,6 +76,15 @@ Route::middleware(['setup.complete', 'auth'])->group(function (): void {
     Route::delete('artworks/bulk-delete', [ArtworkController::class, 'bulkDestroy'])
         ->middleware('restrict.demo:deletes')
         ->name('artworks.bulk-delete');
+
+    Route::get('settings/artwork-tags', [ArtworkTagAdminController::class, 'index'])
+        ->name('settings.artwork-tags.index');
+    Route::post('settings/artwork-tags', [ArtworkTagAdminController::class, 'store'])
+        ->name('settings.artwork-tags.store');
+    Route::patch('settings/artwork-tags/{artwork_tag}', [ArtworkTagAdminController::class, 'update'])
+        ->name('settings.artwork-tags.update');
+    Route::delete('settings/artwork-tags/{artwork_tag}', [ArtworkTagAdminController::class, 'destroy'])
+        ->name('settings.artwork-tags.destroy');
 
     Route::patch('artworks/{artwork}/publishing', [ArtworkPublishingController::class, 'update'])
         ->name('artworks.publishing.update');

@@ -18,6 +18,7 @@
             </dl>
 
         <div class="actions">
+            <a href="{{ route('settings.artwork-tags.index') }}" class="btn">Artwork tags</a>
             @unless ($easelogsDemo['blocks_account_changes'] ?? false)
                 <a href="{{ route('profile.edit') }}" class="btn btn-primary">Edit profile</a>
                 <a href="{{ route('profile.password.edit') }}" class="btn">Change password</a>

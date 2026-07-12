@@ -21,7 +21,51 @@ class ArtworkIndexFilters
 
     public const QUICK_HAS_DIMENSIONS = 'has_dimensions';
 
+    public const MEDIUM_PRESENCE_MISSING = 'missing';
+
+    public const MEDIUM_PRESENCE_HAS = 'has';
+
+    public const TAG_PRESENCE_MISSING_ALL = 'missing_all';
+
+    public const TAG_PRESENCE_HAS_ANY = 'has_any';
+
+    public const TAG_PRESENCE_MISSING_STYLE = 'missing_style';
+
+    public const TAG_PRESENCE_HAS_STYLE = 'has_style';
+
+    public const TAG_PRESENCE_MISSING_SUBJECT = 'missing_subject';
+
+    public const TAG_PRESENCE_HAS_SUBJECT = 'has_subject';
+
+    public const TAG_PRESENCE_MISSING_GENERAL = 'missing_general';
+
+    public const TAG_PRESENCE_HAS_GENERAL = 'has_general';
+
     private const UNTITLED_EXPRESSION = "(title IS NULL OR TRIM(title) = '')";
+
+    private const MISSING_MEDIUM_EXPRESSION = "(medium IS NULL OR TRIM(medium) = '')";
+
+    /**
+     * @var array<string, string>
+     */
+    private const MEDIUM_PRESENCE_FILTERS = [
+        self::MEDIUM_PRESENCE_MISSING => self::MEDIUM_PRESENCE_MISSING,
+        self::MEDIUM_PRESENCE_HAS => self::MEDIUM_PRESENCE_HAS,
+    ];
+
+    /**
+     * @var array<string, string>
+     */
+    private const TAG_PRESENCE_FILTERS = [
+        self::TAG_PRESENCE_MISSING_ALL => self::TAG_PRESENCE_MISSING_ALL,
+        self::TAG_PRESENCE_HAS_ANY => self::TAG_PRESENCE_HAS_ANY,
+        self::TAG_PRESENCE_MISSING_STYLE => self::TAG_PRESENCE_MISSING_STYLE,
+        self::TAG_PRESENCE_HAS_STYLE => self::TAG_PRESENCE_HAS_STYLE,
+        self::TAG_PRESENCE_MISSING_SUBJECT => self::TAG_PRESENCE_MISSING_SUBJECT,
+        self::TAG_PRESENCE_HAS_SUBJECT => self::TAG_PRESENCE_HAS_SUBJECT,
+        self::TAG_PRESENCE_MISSING_GENERAL => self::TAG_PRESENCE_MISSING_GENERAL,
+        self::TAG_PRESENCE_HAS_GENERAL => self::TAG_PRESENCE_HAS_GENERAL,
+    ];
 
     private const MAX_FIELD_VALUE_LENGTH = 255;
 
@@ -41,7 +85,21 @@ class ArtworkIndexFilters
 
     private ?string $medium;
 
-    private ?string $tag;
+    private ?string $mediumPresence;
+
+    private ?string $tagPresence;
+
+    /** @var list<string> */
+    private array $styleTags;
+
+    /** @var list<string> */
+    private array $subjectTags;
+
+    /** @var list<string> */
+    private array $generalTags;
+
+    /** @deprecated Legacy single-tag filter; matches any tag type. */
+    private ?string $legacyTag;
 
     private ?string $dimensionUnit;
 
@@ -53,10 +111,20 @@ class ArtworkIndexFilters
 
     private ?string $heightMax;
 
+    /**
+     * @param  list<string>  $styleTags
+     * @param  list<string>  $subjectTags
+     * @param  list<string>  $generalTags
+     */
     public function __construct(
         ?string $quickFilter,
         ?string $medium,
-        ?string $tag,
+        ?string $mediumPresence,
+        ?string $tagPresence,
+        array $styleTags,
+        array $subjectTags,
+        array $generalTags,
+        ?string $legacyTag,
         ?string $dimensionUnit,
         ?string $widthMin,
         ?string $widthMax,
@@ -65,7 +133,12 @@ class ArtworkIndexFilters
     ) {
         $this->quickFilter = $this->normalizeQuickFilter($quickFilter);
         $this->medium = $this->normalizeFieldValue($medium);
-        $this->tag = $this->normalizeFieldValue($tag);
+        $this->mediumPresence = $this->normalizeMediumPresence($mediumPresence);
+        $this->tagPresence = $this->normalizeTagPresence($tagPresence);
+        $this->styleTags = $this->normalizeTagList($styleTags);
+        $this->subjectTags = $this->normalizeTagList($subjectTags);
+        $this->generalTags = $this->normalizeTagList($generalTags);
+        $this->legacyTag = $this->normalizeFieldValue($legacyTag);
         $this->dimensionUnit = $this->normalizeFieldValue($dimensionUnit);
         $this->widthMin = $this->normalizeNumericValue($widthMin);
         $this->widthMax = $this->normalizeNumericValue($widthMax);
@@ -78,6 +151,11 @@ class ArtworkIndexFilters
         return new self(
             $request->query('filter'),
             $request->query('medium'),
+            $request->query('medium_presence'),
+            $request->query('tag_presence'),
+            self::tagListFromRequest($request, 'style_tags'),
+            self::tagListFromRequest($request, 'subject_tags'),
+            self::tagListFromRequest($request, 'general_tags'),
             $request->query('tag'),
             $request->query('dimension_unit'),
             $request->query('width_min'),
@@ -97,9 +175,46 @@ class ArtworkIndexFilters
         return $this->medium;
     }
 
+    public function mediumPresence(): ?string
+    {
+        return $this->mediumPresence;
+    }
+
+    public function tagPresence(): ?string
+    {
+        return $this->tagPresence;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function styleTags(): array
+    {
+        return $this->styleTags;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function subjectTags(): array
+    {
+        return $this->subjectTags;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function generalTags(): array
+    {
+        return $this->generalTags;
+    }
+
+    /**
+     * @deprecated Use typed tag filters instead.
+     */
     public function tag(): ?string
     {
-        return $this->tag;
+        return $this->legacyTag;
     }
 
     public function dimensionUnit(): ?string
@@ -136,7 +251,12 @@ class ArtworkIndexFilters
     {
         return $this->quickFilter !== self::QUICK_ALL
             || $this->medium !== null
-            || $this->tag !== null
+            || $this->mediumPresence !== null
+            || $this->tagPresence !== null
+            || $this->styleTags !== []
+            || $this->subjectTags !== []
+            || $this->generalTags !== []
+            || $this->legacyTag !== null
             || $this->dimensionUnit !== null
             || $this->widthMin !== null
             || $this->widthMax !== null
@@ -145,7 +265,7 @@ class ArtworkIndexFilters
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     public function queryParams(): array
     {
@@ -157,7 +277,8 @@ class ArtworkIndexFilters
 
         foreach ([
             'medium' => $this->medium,
-            'tag' => $this->tag,
+            'medium_presence' => $this->mediumPresence,
+            'tag_presence' => $this->tagPresence,
             'dimension_unit' => $this->dimensionUnit,
             'width_min' => $this->widthMin,
             'width_max' => $this->widthMax,
@@ -169,11 +290,25 @@ class ArtworkIndexFilters
             }
         }
 
+        foreach ([
+            'style_tags' => $this->styleTags,
+            'subject_tags' => $this->subjectTags,
+            'general_tags' => $this->generalTags,
+        ] as $key => $values) {
+            if ($values !== []) {
+                $params[$key] = $values;
+            }
+        }
+
+        if ($this->legacyTag !== null) {
+            $params['tag'] = $this->legacyTag;
+        }
+
         return $params;
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     public function queryParamsForQuickFilter(string $quickFilter): array
     {
@@ -194,7 +329,9 @@ class ArtworkIndexFilters
     public function apply(Builder $query, ?int $userId = null): void
     {
         $this->applyQuickFilter($query);
+        $this->applyMediumPresenceFilter($query);
         $this->applyFieldFilters($query, $userId);
+        $this->applyTagPresenceFilter($query, $userId);
         $this->applyDimensionFilters($query);
     }
 
@@ -221,20 +358,109 @@ class ArtworkIndexFilters
     /**
      * @param  Builder<\App\Models\Artwork>  $query
      */
+    private function applyMediumPresenceFilter(Builder $query): void
+    {
+        match ($this->mediumPresence) {
+            self::MEDIUM_PRESENCE_MISSING => $query->whereRaw(self::MISSING_MEDIUM_EXPRESSION),
+            self::MEDIUM_PRESENCE_HAS => $query->whereNotNull('medium')
+                ->whereRaw("TRIM(medium) != ''"),
+            default => null,
+        };
+    }
+
+    /**
+     * @param  Builder<\App\Models\Artwork>  $query
+     */
+    private function applyTagPresenceFilter(Builder $query, ?int $userId): void
+    {
+        match ($this->tagPresence) {
+            self::TAG_PRESENCE_MISSING_ALL => $query->whereDoesntHave('tags'),
+            self::TAG_PRESENCE_HAS_ANY => $query->whereHas('tags'),
+            self::TAG_PRESENCE_MISSING_STYLE => $this->applyMissingTypedTagPresence($query, $userId, ArtworkTagType::STYLE),
+            self::TAG_PRESENCE_HAS_STYLE => $this->applyHasTypedTagPresence($query, $userId, ArtworkTagType::STYLE),
+            self::TAG_PRESENCE_MISSING_SUBJECT => $this->applyMissingTypedTagPresence($query, $userId, ArtworkTagType::SUBJECT),
+            self::TAG_PRESENCE_HAS_SUBJECT => $this->applyHasTypedTagPresence($query, $userId, ArtworkTagType::SUBJECT),
+            self::TAG_PRESENCE_MISSING_GENERAL => $this->applyMissingTypedTagPresence($query, $userId, ArtworkTagType::GENERAL),
+            self::TAG_PRESENCE_HAS_GENERAL => $this->applyHasTypedTagPresence($query, $userId, ArtworkTagType::GENERAL),
+            default => null,
+        };
+    }
+
+    /**
+     * @param  Builder<\App\Models\Artwork>  $query
+     */
+    private function applyMissingTypedTagPresence(Builder $query, ?int $userId, string $type): void
+    {
+        $query->whereDoesntHave('tags', function (Builder $builder) use ($userId, $type): void {
+            if ($userId !== null) {
+                $builder->where('user_id', $userId);
+            }
+
+            $builder->where('type', ArtworkTagType::normalize($type));
+        });
+    }
+
+    /**
+     * @param  Builder<\App\Models\Artwork>  $query
+     */
+    private function applyHasTypedTagPresence(Builder $query, ?int $userId, string $type): void
+    {
+        $query->whereHas('tags', function (Builder $builder) use ($userId, $type): void {
+            if ($userId !== null) {
+                $builder->where('user_id', $userId);
+            }
+
+            $builder->where('type', ArtworkTagType::normalize($type));
+        });
+    }
+
+    /**
+     * @param  Builder<\App\Models\Artwork>  $query
+     */
     private function applyFieldFilters(Builder $query, ?int $userId): void
     {
         if ($this->medium !== null) {
             $query->where('medium', $this->medium);
         }
 
-        if ($this->tag !== null && $userId !== null) {
-            $normalizedTag = mb_strtolower($this->tag);
+        if ($userId === null) {
+            return;
+        }
+
+        $this->applyTypedTagFilter($query, $userId, ArtworkTagType::STYLE, $this->styleTags);
+        $this->applyTypedTagFilter($query, $userId, ArtworkTagType::SUBJECT, $this->subjectTags);
+        $this->applyTypedTagFilter($query, $userId, ArtworkTagType::GENERAL, $this->generalTags);
+
+        if ($this->legacyTag !== null) {
+            $normalizedTag = mb_strtolower($this->legacyTag);
 
             $query->whereHas('tags', function (Builder $builder) use ($userId, $normalizedTag): void {
                 $builder->where('user_id', $userId)
                     ->where('normalized_name', $normalizedTag);
             });
         }
+    }
+
+    /**
+     * @param  Builder<\App\Models\Artwork>  $query
+     * @param  list<string>  $tagNames
+     */
+    private function applyTypedTagFilter(Builder $query, int $userId, string $type, array $tagNames): void
+    {
+        if ($tagNames === []) {
+            return;
+        }
+
+        $normalized = array_map(
+            fn (string $name): string => mb_strtolower($name),
+            $tagNames,
+        );
+
+        $query->whereHas('tags', function (Builder $builder) use ($userId, $type, $normalized): void {
+            $builder->where('user_id', $userId)
+                ->where('type', ArtworkTagType::normalize($type))
+                ->whereIn('normalized_name', $normalized);
+        });
     }
 
     /**
@@ -274,6 +500,36 @@ class ArtworkIndexFilters
         return self::QUICK_FILTERS[$filter] ?? self::QUICK_ALL;
     }
 
+    private function normalizeMediumPresence(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $value = strtolower(trim($value));
+
+        if ($value === '') {
+            return null;
+        }
+
+        return self::MEDIUM_PRESENCE_FILTERS[$value] ?? null;
+    }
+
+    private function normalizeTagPresence(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $value = strtolower(trim($value));
+
+        if ($value === '') {
+            return null;
+        }
+
+        return self::TAG_PRESENCE_FILTERS[$value] ?? null;
+    }
+
     private function normalizeFieldValue(mixed $value): ?string
     {
         if (! is_string($value)) {
@@ -289,6 +545,31 @@ class ArtworkIndexFilters
         return mb_substr($value, 0, self::MAX_FIELD_VALUE_LENGTH);
     }
 
+    /**
+     * @param  list<string>  $values
+     * @return list<string>
+     */
+    private function normalizeTagList(array $values): array
+    {
+        $normalized = [];
+
+        foreach ($values as $value) {
+            if (! is_string($value)) {
+                continue;
+            }
+
+            $value = trim($value);
+
+            if ($value === '') {
+                continue;
+            }
+
+            $normalized[] = mb_substr($value, 0, self::MAX_FIELD_VALUE_LENGTH);
+        }
+
+        return array_values(array_unique($normalized));
+    }
+
     private function normalizeNumericValue(mixed $value): ?string
     {
         if (! is_string($value) && ! is_numeric($value)) {
@@ -302,5 +583,29 @@ class ArtworkIndexFilters
         }
 
         return $value;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function tagListFromRequest(Request $request, string $key): array
+    {
+        $value = $request->query($key);
+
+        if (is_array($value)) {
+            return array_values(array_filter(array_map(
+                fn (mixed $tag): string => trim((string) $tag),
+                $value,
+            ), fn (string $tag): bool => $tag !== ''));
+        }
+
+        if (! is_string($value) || trim($value) === '') {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            trim(...),
+            preg_split('/\s*,\s*/', trim($value)) ?: [],
+        ), fn (string $tag): bool => $tag !== ''));
     }
 }
