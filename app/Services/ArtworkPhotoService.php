@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Artwork;
 use App\Models\ArtworkPhoto;
+use App\Support\ArtworkImageQualifier;
 use App\Support\DemoMode;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -13,28 +14,30 @@ class ArtworkPhotoService
 {
     public function __construct(
         private readonly ArtworkPhotoFileHashService $fileHashService,
+        private readonly ArtworkImageQualifier $imageQualifier,
     ) {}
 
     public function store(Artwork $artwork, UploadedFile $file): ArtworkPhoto
     {
         DemoMode::ensurePhotoStorageAllowed();
 
-        $directory = 'artworks/'.$artwork->id;
-        $filename = Str::uuid()->toString().'.'.$file->guessExtension();
-        $path = $file->storeAs($directory, $filename, 'public');
+        $accepted = $this->imageQualifier->qualifyUploadedFile($file);
 
-        [$width, $height] = $this->dimensions($file);
+        $directory = 'artworks/'.$artwork->id;
+        $extension = $accepted->format === 'jpeg' ? 'jpg' : $accepted->format;
+        $filename = Str::uuid()->toString().'.'.$extension;
+        $path = $file->storeAs($directory, $filename, 'public');
 
         $artwork->photos()->update(['is_primary' => false]);
 
         return $artwork->photos()->create([
             'file_path' => $path,
             'original_filename' => $file->getClientOriginalName(),
-            'mime_type' => $file->getClientMimeType(),
-            'file_size' => $file->getSize(),
+            'mime_type' => $accepted->mimeType,
+            'file_size' => $accepted->sizeBytes,
             'file_hash' => $this->fileHashService->hashFile($file->getRealPath()),
-            'width' => $width,
-            'height' => $height,
+            'width' => $accepted->width,
+            'height' => $accepted->height,
             'photo_type' => 'general',
             'is_primary' => true,
             'uploaded_at' => now(),
@@ -53,14 +56,15 @@ class ArtworkPhotoService
     ): ArtworkPhoto {
         DemoMode::ensurePhotoStorageAllowed();
 
+        $accepted = $this->imageQualifier->qualifyPath($absolutePath);
+
         $directory = 'artworks/'.$artwork->id;
-        $extension = pathinfo($originalFilename, PATHINFO_EXTENSION) ?: pathinfo($absolutePath, PATHINFO_EXTENSION);
-        $filename = Str::uuid()->toString().($extension ? '.'.$extension : '');
+        $extension = $accepted->format === 'jpeg' ? 'jpg' : $accepted->format;
+        $filename = Str::uuid()->toString().'.'.$extension;
         $path = $directory.'/'.$filename;
 
         Storage::disk('public')->put($path, file_get_contents($absolutePath));
 
-        [$width, $height] = $this->dimensionsFromPath($absolutePath);
         $isFirstPhoto = ! $artwork->photos()->exists();
 
         if ($setAsCurrent) {
@@ -70,11 +74,11 @@ class ArtworkPhotoService
         return $artwork->photos()->create([
             'file_path' => $path,
             'original_filename' => $originalFilename,
-            'mime_type' => mime_content_type($absolutePath) ?: null,
-            'file_size' => filesize($absolutePath) ?: null,
+            'mime_type' => $accepted->mimeType,
+            'file_size' => $accepted->sizeBytes,
             'file_hash' => $this->fileHashService->hashFile($absolutePath),
-            'width' => $width,
-            'height' => $height,
+            'width' => $accepted->width,
+            'height' => $accepted->height,
             'photo_type' => 'general',
             'caption' => $this->normalizeCaption($caption),
             'is_primary' => $setAsCurrent || $isFirstPhoto,
@@ -94,20 +98,6 @@ class ArtworkPhotoService
         }
     }
 
-    /**
-     * @return array{0: ?int, 1: ?int}
-     */
-    private function dimensionsFromPath(string $absolutePath): array
-    {
-        $size = @getimagesize($absolutePath);
-
-        if ($size === false) {
-            return [null, null];
-        }
-
-        return [$size[0], $size[1]];
-    }
-
     private function normalizeCaption(?string $caption): ?string
     {
         if ($caption === null) {
@@ -117,19 +107,5 @@ class ArtworkPhotoService
         $caption = trim($caption);
 
         return $caption === '' ? null : $caption;
-    }
-
-    /**
-     * @return array{0: ?int, 1: ?int}
-     */
-    private function dimensions(UploadedFile $file): array
-    {
-        $size = @getimagesize($file->getRealPath());
-
-        if ($size === false) {
-            return [null, null];
-        }
-
-        return [$size[0], $size[1]];
     }
 }

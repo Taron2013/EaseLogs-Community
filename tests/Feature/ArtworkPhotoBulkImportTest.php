@@ -6,8 +6,11 @@ use App\Http\Requests\ArtworkPhotoBulkImportPreviewRequest;
 use App\Models\Artwork;
 use App\Models\ArtworkPhoto;
 use App\Models\User;
+use App\Services\ArtworkPhotoBulkImportService;
 use App\Support\ArtworkPhotoBulkImport\FilenameTitleParser;
 use App\Support\ArtworkPhotoBulkImport\PhotoImportUploadLimit;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -613,6 +616,82 @@ class ArtworkPhotoBulkImportTest extends TestCase
         $this->assertSame(0, ArtworkPhoto::query()->count());
     }
 
+    public function test_preview_failure_after_extraction_removes_workspace_and_does_not_publish_cache(): void
+    {
+        $user = $this->signIn();
+        $before = $this->photoImportWorkspaceNames();
+
+        $zip = $this->makeImportZip([
+            'mapping.csv' => '',
+            'photos/kept.jpg' => UploadedFile::fake()->image('kept.jpg')->getContent(),
+        ]);
+
+        try {
+            app(ArtworkPhotoBulkImportService::class)->preview($user, $zip);
+            $this->fail('Expected empty mapping CSV to fail preview publication.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertSame('The mapping CSV is empty.', $exception->getMessage());
+        }
+
+        $this->assertSame($before, $this->photoImportWorkspaceNames());
+        $this->assertSame([], $this->previewCacheKeysFor($user));
+    }
+
+    public function test_apply_failure_after_preview_load_removes_workspace_and_cache(): void
+    {
+        $user = $this->signIn();
+        $artwork = Artwork::factory()->for($user)->create();
+
+        $zip = $this->makeImportZip([
+            'mapping.csv' => "artwork_id,filename\n{$artwork->id},photos/lost.jpg\n",
+            'photos/lost.jpg' => UploadedFile::fake()->image('lost.jpg')->getContent(),
+        ]);
+
+        $token = $this->previewImport($zip);
+        $cacheKey = 'artwork_photo_bulk_preview:'.$user->id.':'.$token;
+        $preview = Cache::get($cacheKey);
+        $this->assertIsArray($preview);
+        $extractPath = $preview['extract_path'];
+        $this->assertDirectoryExists($extractPath);
+
+        $artwork->delete();
+
+        try {
+            app(ArtworkPhotoBulkImportService::class)->apply($user, $token);
+            $this->fail('Expected a missing artwork to abort apply.');
+        } catch (ModelNotFoundException $exception) {
+            $this->assertStringContainsString(Artwork::class, $exception->getMessage());
+        }
+
+        $this->assertDirectoryDoesNotExist($extractPath);
+        $this->assertNull(Cache::get($cacheKey));
+        $this->assertSame(0, ArtworkPhoto::query()->count());
+    }
+
+    public function test_successful_apply_removes_workspace_and_forgets_preview_cache(): void
+    {
+        $user = $this->signIn();
+        $artwork = Artwork::factory()->for($user)->create();
+
+        $zip = $this->makeImportZip([
+            'mapping.csv' => "artwork_id,filename\n{$artwork->id},photos/kept.jpg\n",
+            'photos/kept.jpg' => UploadedFile::fake()->image('kept.jpg')->getContent(),
+        ]);
+
+        $token = $this->previewImport($zip);
+        $cacheKey = 'artwork_photo_bulk_preview:'.$user->id.':'.$token;
+        $preview = Cache::get($cacheKey);
+        $this->assertIsArray($preview);
+        $extractPath = $preview['extract_path'];
+        $this->assertDirectoryExists($extractPath);
+
+        $this->applyImport($token);
+
+        $this->assertDirectoryDoesNotExist($extractPath);
+        $this->assertNull(Cache::get($cacheKey));
+        $this->assertSame(1, $artwork->photos()->count());
+    }
+
     public function test_photo_zip_validation_uses_four_gb_default(): void
     {
         $this->assertSame(4096, config('easelogs.photo_import_max_upload_mb'));
@@ -1211,6 +1290,25 @@ class ArtworkPhotoBulkImportTest extends TestCase
         $this->assertSame(1, $gold->photos()->count());
     }
 
+    public function test_unqualifiable_zip_member_is_skipped_and_valid_member_still_imports(): void
+    {
+        $user = $this->signIn();
+        $good = Artwork::factory()->for($user)->create(['title' => 'Kept']);
+        $bad = Artwork::factory()->for($user)->create(['title' => 'Rejected']);
+
+        $zip = $this->makeImportZip([
+            'mapping.csv' => "artwork_id,filename\n{$good->id},photos/good.jpg\n{$bad->id},photos/bad.jpg\n",
+            'photos/good.jpg' => UploadedFile::fake()->image('good.jpg', 16, 10)->getContent(),
+            'photos/bad.jpg' => 'not-an-image',
+        ]);
+
+        $this->applyImport($this->previewImport($zip));
+
+        $this->assertSame(1, $good->photos()->count());
+        $this->assertSame(0, $bad->photos()->count());
+        $this->assertSame(1, ArtworkPhoto::query()->count());
+    }
+
     private function previewImport(UploadedFile $zip, ?UploadedFile $mappingCsv = null): string
     {
         $payload = ['photo_zip' => $zip];
@@ -1260,8 +1358,9 @@ class ArtworkPhotoBulkImportTest extends TestCase
 
         $rowKey = $this->previewRowKey($user, $token, 'needs_confirmation', 'file-');
 
-        $this->get(route('artworks.photo-bulk-import.preview.thumb', ['token' => $token, 'rowKey' => $rowKey]))
-            ->assertOk();
+        $thumbnail = $this->get(route('artworks.photo-bulk-import.preview.thumb', ['token' => $token, 'rowKey' => $rowKey]));
+        $thumbnail->assertOk();
+        $thumbnail->assertHeader('content-type', 'image/jpeg');
     }
 
     private function previewRow(User $user, string $token, string $status, ?string $prefix = null): array
@@ -1334,6 +1433,49 @@ class ArtworkPhotoBulkImportTest extends TestCase
             'is_primary' => true,
             'uploaded_at' => now(),
         ]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function photoImportWorkspaceNames(): array
+    {
+        $root = storage_path('app/temp/photo-imports');
+
+        if (! is_dir($root)) {
+            return [];
+        }
+
+        $names = array_values(array_filter(
+            scandir($root) ?: [],
+            static fn (string $entry): bool => $entry !== '.' && $entry !== '..' && is_dir($root.DIRECTORY_SEPARATOR.$entry),
+        ));
+        sort($names);
+
+        return $names;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function previewCacheKeysFor(User $user): array
+    {
+        $store = Cache::getStore();
+
+        if (! $store instanceof ArrayStore) {
+            return [];
+        }
+
+        $needle = 'artwork_photo_bulk_preview:'.$user->id.':';
+        $keys = [];
+
+        foreach (array_keys($store->all(false)) as $key) {
+            if (str_contains((string) $key, $needle)) {
+                $keys[] = (string) $key;
+            }
+        }
+
+        return $keys;
     }
 
     /**

@@ -12,7 +12,10 @@ use App\Support\ArtworkPhotoBulkImport\BulkImportRowStatus;
 use App\Support\ArtworkPhotoBulkImport\FilenameTitleParser;
 use App\Support\ArtworkPhotoBulkImport\PhotoImportArtworkSearch;
 use App\Support\ArtworkPhotoBulkImport\PhotoImportPreviewThumbnailService;
+use App\Support\ArtworkPhotoBulkImport\PhotoImportTempContainment;
 use App\Support\ArtworkPhotoBulkImport\PhotoImportZipExtractor;
+use App\Support\ArtworkImageQualifier;
+use App\Support\ArtworkImageRejectedException;
 use App\Support\DemoMode;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -44,6 +47,7 @@ class ArtworkPhotoBulkImportService
         private readonly PhotoImportArtworkSearch $artworkSearch,
         private readonly ArtworkPhotoFileHashService $fileHashService,
         private readonly PhotoImportZipExtractor $zipExtractor,
+        private readonly ArtworkImageQualifier $imageQualifier,
     ) {}
 
     /**
@@ -58,22 +62,31 @@ class ArtworkPhotoBulkImportService
 
         $token = Str::uuid()->toString();
         $extractPath = $this->extractZip($zipFile, $token);
-        $mappingPath = $this->resolveMappingPath($extractPath, $mappingFile);
-        $zipFiles = $this->indexZipFiles($extractPath);
-        $allFiles = $this->indexAllNonCsvFiles($extractPath);
-        $rows = $mappingPath !== null ? $this->parseMappingCsv($mappingPath) : [];
-        $previewRows = $this->buildPreviewRows($user, $rows, $zipFiles, $allFiles);
+        $published = false;
 
-        $preview = [
-            'token' => $token,
-            'extract_path' => $extractPath,
-            'rows' => $previewRows,
-            'summary' => $this->summarize($previewRows, count($zipFiles)),
-        ];
+        try {
+            $mappingPath = $this->resolveMappingPath($extractPath, $mappingFile);
+            $zipFiles = $this->indexZipFiles($extractPath);
+            $allFiles = $this->indexAllNonCsvFiles($extractPath);
+            $rows = $mappingPath !== null ? $this->parseMappingCsv($mappingPath) : [];
+            $previewRows = $this->buildPreviewRows($user, $rows, $zipFiles, $allFiles);
 
-        Cache::put(self::CACHE_PREFIX.$user->id.':'.$token, $preview, now()->addHours(2));
+            $preview = [
+                'token' => $token,
+                'extract_path' => $extractPath,
+                'rows' => $previewRows,
+                'summary' => $this->summarize($previewRows, count($zipFiles)),
+            ];
 
-        return ['token' => $token, 'preview' => $preview];
+            Cache::put(self::CACHE_PREFIX.$user->id.':'.$token, $preview, now()->addHours(2));
+            $published = true;
+
+            return ['token' => $token, 'preview' => $preview];
+        } finally {
+            if (! $published) {
+                $this->cleanupPreview(['extract_path' => $extractPath]);
+            }
+        }
     }
 
     /**
@@ -95,7 +108,8 @@ class ArtworkPhotoBulkImportService
         $skipped = 0;
         $unconfirmed = 0;
 
-        foreach ($preview['rows'] as $row) {
+        try {
+            foreach ($preview['rows'] as $row) {
             $status = $row['status'] ?? null;
             $rowKey = $row['row_key'] ?? null;
             $shouldImport = $status === BulkImportRowStatus::READY
@@ -124,27 +138,33 @@ class ArtworkPhotoBulkImportService
             $artworkId = $row['artwork_id'];
             $artwork = Artwork::query()->where('user_id', $user->id)->findOrFail($artworkId);
 
-            $this->photoService->importStoredFile(
-                $artwork,
-                $row['absolute_path'],
-                $row['original_filename'],
-                $row['caption'] ?? null,
-                (bool) ($row['set_as_current'] ?? false),
-            );
+            try {
+                $this->photoService->importStoredFile(
+                    $artwork,
+                    $row['absolute_path'],
+                    $row['original_filename'],
+                    $row['caption'] ?? null,
+                    (bool) ($row['set_as_current'] ?? false),
+                );
+            } catch (ArtworkImageRejectedException) {
+                $skipped++;
 
-            $applied++;
+                continue;
+            }
+
+                $applied++;
+            }
+
+            return [
+                'applied' => $applied,
+                'skipped' => $skipped,
+                'unconfirmed' => $unconfirmed,
+                'summary' => $preview['summary'],
+            ];
+        } finally {
+            $this->cleanupPreview($preview);
+            Cache::forget(self::CACHE_PREFIX.$user->id.':'.$token);
         }
-
-        $this->cleanupPreview($preview);
-
-        Cache::forget(self::CACHE_PREFIX.$user->id.':'.$token);
-
-        return [
-            'applied' => $applied,
-            'skipped' => $skipped,
-            'unconfirmed' => $unconfirmed,
-            'summary' => $preview['summary'],
-        ];
     }
 
     public function discard(User $user, string $token): void
@@ -554,19 +574,8 @@ class ArtworkPhotoBulkImportService
                     values: $values,
                     source: 'mapping_csv',
                 );
-                $preview['absolute_path'] = $absolutePath;
-                $preview = $this->detectDuplicatePhoto($preview, $absolutePath, $existingPhotoHashes);
-
-                if (($preview['status'] ?? null) !== BulkImportRowStatus::DUPLICATE_EXISTING_PHOTO) {
-                    $preview = $this->resolveArtworkMatch(
-                        $user,
-                        $preview,
-                        $this->parseArtworkId($values['artwork_id'] ?? null),
-                        $this->resolveTitleColumn($values),
-                        $filename,
-                    );
-                }
             } else {
+                $values = [];
                 $preview = $this->basePreviewRow(
                     rowKey: 'file-'.sha1($filename),
                     line: null,
@@ -574,10 +583,32 @@ class ArtworkPhotoBulkImportService
                     values: [],
                     source: 'zip_filename',
                 );
-                $preview['absolute_path'] = $absolutePath;
-                $preview = $this->detectDuplicatePhoto($preview, $absolutePath, $existingPhotoHashes);
+            }
 
-                if (($preview['status'] ?? null) !== BulkImportRowStatus::DUPLICATE_EXISTING_PHOTO) {
+            // Intrinsic B1 qualification before any usable image candidate exposure.
+            try {
+                $this->imageQualifier->qualifyPath($absolutePath);
+            } catch (ArtworkImageRejectedException) {
+                $preview['status'] = BulkImportRowStatus::INVALID_FILE;
+                $preview['message'] = BulkImportRowNotes::forRow($preview);
+                $previewRows[] = $preview;
+
+                continue;
+            }
+
+            $preview['absolute_path'] = $absolutePath;
+            $preview = $this->detectDuplicatePhoto($preview, $absolutePath, $existingPhotoHashes);
+
+            if (($preview['status'] ?? null) !== BulkImportRowStatus::DUPLICATE_EXISTING_PHOTO) {
+                if (isset($mappingByFilename[$filename])) {
+                    $preview = $this->resolveArtworkMatch(
+                        $user,
+                        $preview,
+                        $this->parseArtworkId($values['artwork_id'] ?? null),
+                        $this->resolveTitleColumn($values),
+                        $filename,
+                    );
+                } else {
                     $parsedTitle = $this->filenameParser->parse($filename);
                     $preview = $this->resolveArtworkMatch(
                         $user,
@@ -1018,9 +1049,11 @@ class ArtworkPhotoBulkImportService
     {
         $extractPath = $preview['extract_path'] ?? null;
 
-        if (is_string($extractPath) && str_starts_with($extractPath, storage_path('app/temp/photo-imports'))) {
-            $this->thumbnailService->cleanupExtractDirectory($extractPath);
-            File::deleteDirectory($extractPath);
+        if (! is_string($extractPath) || ! PhotoImportTempContainment::isAllowedExtractionDirectory($extractPath)) {
+            return;
         }
+
+        $this->thumbnailService->cleanupExtractDirectory($extractPath);
+        PhotoImportTempContainment::deleteExtractionDirectory($extractPath);
     }
 }

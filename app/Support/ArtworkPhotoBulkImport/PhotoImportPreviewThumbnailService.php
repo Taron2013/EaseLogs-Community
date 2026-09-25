@@ -4,7 +4,6 @@ namespace App\Support\ArtworkPhotoBulkImport;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 final class PhotoImportPreviewThumbnailService
@@ -37,15 +36,27 @@ final class PhotoImportPreviewThumbnailService
 
     public function cleanupExtractDirectory(string $extractPath): void
     {
-        $thumbDir = $extractPath.'/'.self::THUMB_SUBDIR;
+        if (is_link($extractPath)) {
+            return;
+        }
 
-        if (is_dir($thumbDir)) {
-            foreach (glob($thumbDir.'/*') ?: [] as $file) {
-                if (is_file($file)) {
-                    @unlink($file);
-                }
-            }
+        $resolved = realpath($extractPath);
 
+        if ($resolved === false || ! PhotoImportTempContainment::isAllowedExtractionDirectory($resolved)) {
+            return;
+        }
+
+        $thumbDir = $resolved.DIRECTORY_SEPARATOR.self::THUMB_SUBDIR;
+
+        if (is_link($thumbDir) || ! is_dir($thumbDir)) {
+            return;
+        }
+
+        foreach (glob($thumbDir.'/*') ?: [] as $file) {
+            PhotoImportTempContainment::unlinkContainedFile($file);
+        }
+
+        if (! is_link($thumbDir)) {
             @rmdir($thumbDir);
         }
     }
@@ -62,7 +73,7 @@ final class PhotoImportPreviewThumbnailService
             if (($row['row_key'] ?? null) === $rowKey) {
                 $path = $row['absolute_path'] ?? null;
 
-                return is_string($path) && is_file($path) ? $path : null;
+                return is_string($path) && PhotoImportTempContainment::isContainedFile($path) ? $path : null;
             }
         }
 
@@ -88,28 +99,9 @@ final class PhotoImportPreviewThumbnailService
 
     private function extractRoot(string $absolutePath): ?string
     {
-        $marker = 'photo-imports'.DIRECTORY_SEPARATOR;
+        $root = PhotoImportTempContainment::extractionDirectoryFor($absolutePath);
 
-        if (! str_contains($absolutePath, $marker)) {
-            return null;
-        }
-
-        $relative = Str::after($absolutePath, $marker);
-        $token = strtok($relative, DIRECTORY_SEPARATOR);
-
-        if ($token === false || $token === '') {
-            return null;
-        }
-
-        $root = storage_path('app/temp/photo-imports/'.$token);
-        $realSource = realpath($absolutePath);
-        $realRoot = realpath($root);
-
-        if ($realSource === false || $realRoot === false || ! str_starts_with($realSource, $realRoot)) {
-            return null;
-        }
-
-        return $realRoot;
+        return is_string($root) ? $root : null;
     }
 
     private function safeThumbFilename(string $rowKey): string

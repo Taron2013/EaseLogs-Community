@@ -206,8 +206,6 @@ final class PhotoImportZipExtractor
 
     private function cleanupDirectory(string $extractPath): void
     {
-        if (is_dir($extractPath)) {
-            File::deleteDirectory($extractPath);
-        }
+        PhotoImportTempContainment::deleteExtractionDirectory($extractPath);
     }
 }
