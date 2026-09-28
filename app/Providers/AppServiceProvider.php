@@ -3,6 +3,10 @@
 namespace App\Providers;
 
 use App\Support\DemoMode;
+use App\Support\PersistentFileStorage\Contracts\PersistentFileStorageResolver as PersistentFileStorageResolverContract;
+use App\Support\PersistentFileStorage\PersistentFileStorageResolver;
+use App\Support\PersistentFileStorage\StorageKeyFactory;
+use App\Support\PersistentFileStorage\StorageTargetRegistry;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
@@ -15,7 +19,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(StorageTargetRegistry::class);
+        $this->app->singleton(PersistentFileStorageResolverContract::class, PersistentFileStorageResolver::class);
+        $this->app->singleton(StorageKeyFactory::class);
     }
 
     /**
