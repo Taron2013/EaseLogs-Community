@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasImmutableUuid;
 use Database\Factories\ArtworkFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Support\Carbon;
 class Artwork extends Model
 {
     /** @use HasFactory<ArtworkFactory> */
-    use HasFactory;
+    use HasFactory, HasImmutableUuid;
 
     /**
      * @var array<string, mixed>

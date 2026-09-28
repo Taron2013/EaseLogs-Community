@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasImmutableUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 class ArtworkPhoto extends Model
 {
     /** @use HasFactory<\Database\Factories\ArtworkPhotoFactory> */
-    use HasFactory;
+    use HasFactory, HasImmutableUuid;
 
     /**
      * @var list<string>
@@ -18,6 +19,8 @@ class ArtworkPhoto extends Model
     protected $fillable = [
         'artwork_id',
         'file_path',
+        'storage_key',
+        'storage_config_target',
         'original_filename',
         'mime_type',
         'file_size',
@@ -51,7 +54,7 @@ class ArtworkPhoto extends Model
 
     public function existsOnDisk(): bool
     {
-        return $this->file_path !== ''
+        return is_string($this->file_path) && $this->file_path !== ''
             && Storage::disk('public')->exists($this->file_path);
     }
 
