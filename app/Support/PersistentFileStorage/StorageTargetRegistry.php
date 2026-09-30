@@ -16,10 +16,32 @@ final class StorageTargetRegistry
 
     public function defaultTargetName(): string
     {
-        $name = (string) $this->config->get('easelogs_storage.default_target', 'local_persistent');
+        if (! $this->config->has('easelogs_storage.default_target')) {
+            throw new StorageTargetNotFoundException(
+                'Configured storage default_target is missing.',
+            );
+        }
+
+        $raw = $this->config->get('easelogs_storage.default_target');
+
+        if ($raw === null) {
+            throw new StorageTargetNotFoundException(
+                'Configured storage default_target is missing.',
+            );
+        }
+
+        if (! is_string($raw)) {
+            throw new StorageTargetNotFoundException(
+                'Configured storage default_target must be a non-empty string.',
+            );
+        }
+
+        $name = trim($raw);
 
         if ($name === '') {
-            return 'local_persistent';
+            throw new StorageTargetNotFoundException(
+                'Configured storage default_target is blank.',
+            );
         }
 
         return $name;
