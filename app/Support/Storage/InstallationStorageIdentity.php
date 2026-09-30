@@ -2,6 +2,7 @@
 
 namespace App\Support\Storage;
 
+use App\Support\PersistentFileStorage\TenantScope;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -15,6 +16,16 @@ use Illuminate\Support\Str;
 class InstallationStorageIdentity
 {
     public const SETTING_KEY = 'installation_storage_tenant_uuid';
+
+    /**
+     * TenantScope for durable logical keys using this installation's UUID.
+     *
+     * Reuses ensure(); does not introduce a second identity writer.
+     */
+    public function tenantScope(): TenantScope
+    {
+        return TenantScope::fromUuid($this->ensure());
+    }
 
     public function ensure(): string
     {
