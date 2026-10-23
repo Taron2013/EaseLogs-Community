@@ -41,6 +41,12 @@ The following reflects the Community README and documentation present on the rev
 - Do not introduce external services, paid dependencies, or cloud assumptions without an approved product decision.
 - Before coding, inspect current code, tests, branch state, and linked design docs. A design note does not override code evidence or a later approved decision.
 
+## Decision records and authority
+
+The canonical product and application architecture decision records are in [docs/adr/](adr/README.md). Before design or implementation, read that index and the relevant accepted ADRs. A proposed ADR is not approval to implement. If an ADR conflicts with this specification, the approved task, or observed code, stop and report the exact conflict to the project owner. Do not silently infer which instruction takes precedence.
+
+The project swarm's `project/DECISIONS.md` records swarm workflow and execution approvals; it does not replace application ADRs. Shared, tool-neutral swarm policy is maintained in the AI-Swarm repository. An accepted ADR does not by itself authorize implementation outside the separately approved task scope.
+
 ## Canonical implementation references
 
 - [Community Edition overview](COMMUNITY_EDITION.md)
