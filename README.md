@@ -234,3 +234,8 @@ EaseLogs depends on third-party packages that remain under **their own licenses*
 ## Copyright
 
 Copyright © 2026 Douglas Cross. All rights reserved except as granted in LICENSE.
+
+
+## Architecture and product decisions
+
+Read [docs/adr/README.md](docs/adr/README.md) and the relevant accepted ADRs before making design or implementation changes. Proposed ADRs are not approval to implement. Report conflicts between a decision record, task instructions, and observed code to the project owner.
