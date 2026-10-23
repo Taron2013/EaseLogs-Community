@@ -2,7 +2,8 @@
 
 **Audience:** Community Edition maintainers  
 **Last reviewed:** 2026-10-23  
-**Authority:** Candidate product backlog; items require separate approval before implementation.
+**Authority:** Candidate product backlog; items require separate approval before implementation.  
+**Branch transition status:** The project owner has paused work on all existing source branches while transitioning work to the AI swarm. Preserve those branches as import snapshots; implementation and security corrections are to proceed on swarm branches after import.
 
 This backlog consolidates the remaining Community Edition roadmap entries already listed in the repository README. It is not a priority ranking or an implementation commitment.
 
