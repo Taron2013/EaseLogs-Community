@@ -19,3 +19,7 @@ This directory is the canonical record for significant product and architecture 
 - Tool-neutral swarm operating policy belongs in the shared AI-Swarm repository.
 
 When proposing a new decision from a swarm branch, label it Proposed. The project owner must explicitly accept the decision. Any transfer of the ADR and related implementation into a non-swarm branch follows the project's separate promotion gate.
+
+## Accepted ADRs
+
+- [ADR-0001: Restrict the demo account to demo-enabled deployments](0001-demo-account-demo-mode.md) — the configured demo identity is provisioned and usable only when demo mode is enabled; disabling demo mode blocks one-click and ordinary password login for that identity.
