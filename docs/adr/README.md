@@ -22,4 +22,4 @@ When proposing a new decision from a swarm branch, label it Proposed. The projec
 
 ## Accepted ADRs
 
-- [ADR-0001: Restrict the demo account to demo-enabled deployments](0001-demo-account-demo-mode.md) — the configured demo identity is provisioned and usable only when demo mode is enabled; disabling demo mode blocks one-click and ordinary password login for that identity.
+- [ADR-0003: Dedicated demo accounts are not a current Community requirement](0003-community-demo-scope.md) — Community is primarily self-hosted; optional future consideration requires a new decision. The superseded ADR-0001 is preserved in Git history.
