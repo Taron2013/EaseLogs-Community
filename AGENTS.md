@@ -7,7 +7,7 @@ These instructions guide AI work in this application repository. They are not ta
 - Confirm the repository, current branch, and task scope with the project owner. Do not assume a task authorizes work in another repository or branch.
 - Read `README.md`, `docs/adr/README.md`, every applicable accepted ADR from this branch, the relevant product documentation, and the task's acceptance criteria.
 - Inspect the relevant code and tests before proposing or making changes. Treat the checked-out branch as the source of truth; do not assume another branch has the same implementation or decisions.
-- For the demo account, follow [ADR-0001](https://github.com/Taron2013/EaseLogs-Community/blob/main/docs/adr/0001-demo-account-demo-mode.md).
+- Follow [ADR-0003](docs/adr/0003-community-demo-scope.md): dedicated demo accounts are not a current Community requirement. This documentation decision does not authorize application-code changes.
 
 ## One-agent task boundaries
 
@@ -27,4 +27,4 @@ These instructions guide AI work in this application repository. They are not ta
 
 - Treat accepted ADRs as project decisions within their stated scope. If code and an accepted ADR disagree, report the discrepancy; do not silently rewrite the ADR or decide which one to ignore.
 - Only the project owner or an owner-designated coordinator may maintain this `AGENTS.md`. An assigned agent must treat it as read-only and propose changes separately.
-- Never print or add credentials, tokens, keys, or secrets to code or reports. The configured public demo password is the sole owner-approved exception, strictly as described in ADR-0001; this exception does not authorize any other password or secret.
+- Never print or add credentials, tokens, keys, or secrets to code or reports. No demo-password exception is currently approved as a Community requirement; do not change existing code or secrets as part of this documentation-only scope update.
