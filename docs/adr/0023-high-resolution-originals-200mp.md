@@ -69,3 +69,18 @@ This subsection is **approved product behavior** for both editions. The overall 
 - Test that ordinary over-limit errors are actionable, malicious/corrupt cases are non-revealing, and valid files are not misclassified.
 
 **Proposal only: no implementation, deployments, merges, or changes to canonical main are authorized.**
+
+
+## Owner-approved real-world format and master-image clarification (2026-11-09)
+
+This subsection clarifies the shared Community/Pro archival acceptance requirements; it does **not** authorize implementation, deployment, or a change to this ADR's overall Proposed status.
+
+- **Current priority formats:** JPEG/JPG and PNG. A representative real-world upscaled artwork master is approximately **12,000 × 11,000 = 132,000,000 pixels (132 MP)**. Valid JPEG and PNG originals of this size must be eligible for byte-preserving admission, export, and reimport within the independently enforced **200,000,000-pixel**, **30,000-pixel-per-edge**, and **1 GiB per-file** approved limits. Do not introduce a lower JPEG/PNG master cap that excludes this example.
+- Preserve original file bytes, embedded metadata, and integrity hash. Derivative previews, thumbnails, watermarks, or scaling must not overwrite or silently convert the master. If derivative generation cannot safely process a master, retain the admitted original and show a safe placeholder/status.
+- **TIFF/BigTIFF:** Anticipated future archival format, **research/proposal only**; not currently used for the owner's masters, not approved as an accepted format, and **not part of UAT-002 Slice B implementation**. Research should separately consider multi-page/IFD structures, bit depths, compression, metadata, streaming structural inspection, and isolated derivative processing. Any edition-specific implementation requires separate review and approval.
+- **PSD:** Proprietary working-document format is outside the currently planned native archival format support; no PSD parsing or conversion is authorized.
+- **WebP:** Secondary priority. A temporary format-specific restriction (including the coordinator-proposed 50 MP WebP cap) remains an **open security/design decision**, not an approved replacement for the general 200 MP JPEG/PNG requirement.
+- **GIF:** No additional support is authorized by this clarification.
+- Test JPEG and PNG at approximately 132 MP as well as the already approved upper boundaries. Keep import/export SHA-256 integrity verification and separate the structural-admission path from potentially expensive full-resolution decoding.
+
+This shared clarification must be maintained independently in each edition's ADR. It does not introduce Pro cloud-native dependencies or Pro-only capabilities into Community.
