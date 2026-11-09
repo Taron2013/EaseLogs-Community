@@ -31,4 +31,16 @@ Current qualification constraints reportedly include 8192 pixels per edge and 16
 - Define maximum edge/aspect ratio, byte limits, and worker resource policy.
 - Inventory Community upload/import/export paths and determine migration/testing needs.
 
+
+## Accepted UI rejection-reporting requirement (owner approved 2026-11-09)
+This subsection is **approved product behavior** for both editions. The overall 200 MP architectural ADR remains Proposed and does not authorize implementation.
+
+- Display the affected file's safe display name, a concise rejection category, and an actionable next step. For ordinary configurable constraints (resolution, file bytes, archive bytes), show the observed value and effective limit where available.
+- Use distinct states for **verified**, **rejected**, **unmatched**, and **integrity failure**; never label a qualification exception as a checksum mismatch. Display aggregate counts and per-file reasons during batch preview.
+- Supported formats may be shown. Malformed/unsafe image or ZIP structures receive a generic safe message, without disclosing exploit detection logic, parser internals, stack traces, server paths, SQL, exception messages, secrets, or actual/expected hashes.
+- Keep detailed diagnostics in access-controlled server logs with correlation identifiers and privacy-conscious retention; do not log entire image bytes or secrets. Ensure public errors do not vary in ways that expose sensitive security rules.
+- Apply client-side preflight when possible, but enforce limits again server-side. Handle upstream 413 and PHP/nginx failures with a safe generic upload-too-large message if exact effective limit cannot be determined. Do not promise an exact limit the server cannot verify.
+- Distinguish storage, format, integrity, qualification, ZIP transport/extraction, and artwork matching failures; reject unsafe content fail-closed. No bypass, automatic resize, or weakening of security checks is authorized.
+- Test that ordinary over-limit errors are actionable, malicious/corrupt cases are non-revealing, and valid files are not misclassified.
+
 **Proposal only: no implementation, deployments, merges, or changes to canonical main are authorized.**
