@@ -46,6 +46,17 @@ These constraints apply to original master images and original progress photos, 
 
 Administrators may explicitly configure lower or higher limits only through a separately reviewed, secure deployment configuration; defaults remain as above. Any change must preserve bounded validation, supported-format rules, storage controls, and truthful user-facing error messages. These approved image limits **do not change ZIP transport, archive extraction, or metadata-entry limits**. Any lower effective HTTP/PHP/nginx limit must be documented and surfaced safely to users.
 
+
+## Owner-approved configuration and deployment contract (2026-11-09)
+The owner approves exposing the three accepted original-image defaults through Laravel's configuration system for **both Community and Pro**. This is a requirement approval, not permission to implement or deploy.
+
+- Define the default pixel cap (200000000), edge cap (30000), and file-byte cap (1073741824) in the edition's Laravel `config/easelogs.php`, with optional `EASELOGS_IMAGE_MAX_PIXELS`, `EASELOGS_IMAGE_MAX_EDGE`, and `EASELOGS_IMAGE_MAX_FILE_BYTES` environment overrides. Use `config()` in runtime services; avoid reading `env()` directly outside configuration files.
+- Document all three variables, units, defaults, and safety implications in each edition's tracked `.env.example`; never commit or overwrite a real `.env` containing installation secrets.
+- Update relevant deployment/setup documentation and deployment-script templates so self-hosted production operators know how to adjust the limits, validate effective configuration, and refresh Laravel's config cache. Deployment must preserve existing overrides; do not silently replace an installation's `.env`.
+- Reconcile the pre-existing `photo_max_kb` setting to avoid conflicting per-image size ceilings, and check PHP/nginx/web-server request-body settings and import ZIP limits separately. Describe the effective lower limit and ensure safe actionable errors.
+- Validate configured values at startup/deployment, reject invalid/unsafe values, and keep administrative overrides subject to resource safety. Original archival limits must remain separate from derivative-worker memory/CPU/time limits.
+- Include tests for defaults, overrides, invalid values, existing-installation compatibility, and no accidental edition-specific feature leakage.
+
 ## Accepted UI rejection-reporting requirement (owner approved 2026-11-09)
 This subsection is **approved product behavior** for both editions. The overall 200 MP architectural ADR remains Proposed and does not authorize implementation.
 
