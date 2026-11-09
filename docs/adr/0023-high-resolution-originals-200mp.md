@@ -32,6 +32,20 @@ Current qualification constraints reportedly include 8192 pixels per edge and 16
 - Inventory Community upload/import/export paths and determine migration/testing needs.
 
 
+
+## Owner-approved original image acceptance limits (2026-11-09)
+The following **default acceptance limits are approved requirements for both Community and Pro**, but **implementation is not yet authorized**:
+
+| Constraint | Approved default | Enforcement |
+|---|---:|---|
+| Total image pixels | 200,000,000 inclusive | width × height <= 200,000,000 |
+| Maximum individual edge | 30,000 pixels inclusive | width <= 30,000 and height <= 30,000 |
+| Maximum individual original file | 1 GiB (1,073,741,824 bytes) inclusive | actual file bytes <= 1,073,741,824 |
+
+These constraints apply to original master images and original progress photos, whether uploaded individually or restored from a supported image import. All three must pass. The limits are independent: a file within the pixel cap may still exceed the byte cap, and vice versa. Existing 16 MP, 8192-edge, and 64 MB decoded-memory qualification restrictions must not block a valid original within these limits. Full-resolution decoding must not be required merely for archival acceptance. Processing-specific safety limits remain mandatory.
+
+Administrators may explicitly configure lower or higher limits only through a separately reviewed, secure deployment configuration; defaults remain as above. Any change must preserve bounded validation, supported-format rules, storage controls, and truthful user-facing error messages. These approved image limits **do not change ZIP transport, archive extraction, or metadata-entry limits**. Any lower effective HTTP/PHP/nginx limit must be documented and surfaced safely to users.
+
 ## Accepted UI rejection-reporting requirement (owner approved 2026-11-09)
 This subsection is **approved product behavior** for both editions. The overall 200 MP architectural ADR remains Proposed and does not authorize implementation.
 
